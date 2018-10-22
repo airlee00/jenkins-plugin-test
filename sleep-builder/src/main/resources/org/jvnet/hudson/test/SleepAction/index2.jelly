@@ -1,0 +1,117 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/superagent/0.15.7/superagent.min.js" />
+ <l:layout title="Greeting"> 
+        <l:main-panel> 
+            <h1> 
+                Name: ${it.name} 
+            </h1>
+                <h1>${%main.view.title}</h1>
+            -----------
+      <table class="pane bigtable">
+        <j:forEach var="c" items="${it.allColumns}">
+          <tr>
+           <td><j:out value="${c.col1}"/></td>
+           <td><j:out value="${c.col2}"/></td>
+           <td><j:out value="${c.col3}"/></td>
+           <td><j:out value="${c.col4}"/></td>
+           <td><j:out value="${c.col5}"/></td>
+           <td><j:out value="${c.col6}"/></td>
+           </tr>
+        </j:forEach>
+      </table>
+
+    <!-- Custom Styles for table -->
+    <style type="text/css">
+        .TEST {
+            background-color: orange
+        }   
+        .STAGING {
+            background-color: yellow
+        }   
+        .PRODUCTION {
+            background-color: lightgreen
+        }
+        .JENKINS {
+            background-color: lightblue
+        }
+    </style>
+
+    <h1>${%main.view.title}</h1>
+    
+    <script>
+      function deploy() {
+        var app = 'aaa'
+        var version = document.getElementById('versionId').value;
+        var environment = document.getElementById('environmentId').value;
+        document.getElementById('msg').innerHTML = "Deploying VERSION [" + version + "] to ENVIRONMENT [" + environment + "]. Please wait ...";
+        app.deploy(version, environment, function(t) {
+          document.getElementById('msg').innerHTML = t.responseObject();
+        })
+      }
+    </script>
+    
+
+    <table class="pane bigtable" style='background-color:lightgreen;'>
+        <tr>
+          <td>
+              <div align='center'>
+                <h3>${%main.view.available.releases}</h3>
+                <p>${%main.view.select.version}</p>
+                
+                ${%main.view.version}
+                
+                <select id="versionId" name='VERSION'>
+                      <center>
+                            <option value=''>0000000</option>
+                      </center>
+                      <br />
+                </select>
+                
+                ${%main.view.environment}
+                
+                <select id="environmentId" name='ENVIRONMENT'>
+                        <option value='${env.awsInstance}'>${env.name}</option>
+                </select>
+
+                ${%main.view.deploy.app}
+                
+                <a id="deployLink" title="{%main.view.deploy.app.link}" href="" onclick="deploy(); return false;">
+                    <img title="{%main.view.build.parameters}" alt="{%main.view.build.parameters}" src="{rootURL}/images/24x24/clock.png" border="0" />
+                </a>
+                
+                <p>
+                  <div id="msg" />
+                </p>
+                
+              </div>
+          </td>
+        </tr>
+    </table>
+        
+    <h2>{%main.view.server.title}</h2>
+
+	    <table class="pane bigtable">
+	        <tr style="background-color: lightgrey">
+	            <th>{%main.view.server.name}</th>
+	            <th>{%main.view.server.state}</th>
+	            <th>{%main.view.server.link}</th>
+	            <th>{%main.view.server.versions}</th>
+	            <th>{%main.view.server.tag}</th>
+	            <th>{%main.view.server.details}</th>
+	        </tr>
+	            <tr class="${ec2Instance.type}">
+	                <td>{ec2Instance.type}</td>
+	                <td><b>{ec2Instance.state.name}</b><br/>{%main.view.server.last.started} {ec2Instance.launchTime}</td>
+	                <td>
+	                    <a href="{ec2Instance.webAppLink}">{ec2Instance.webAppLink}</a>
+	                    {ec2Instance.webAppLink}
+	                </td>
+	                <td>{ec2Instance.version}</td>
+	                <td>{ec2Instance.environmentTag}</td>
+	                <td>Instance Id: {ec2Instance.instanceId}<br/>{%main.view.server.instance.type} {ec2Instance.instanceType}</td>
+	            </tr>
+	      </table>     
+        </l:main-panel>
+    </l:layout>
+</j:jelly>
