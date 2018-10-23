@@ -1,0 +1,96 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/superagent/0.15.7/superagent.min.js" />
+ <l:layout title="Greeting"> 
+    <l:main-panel> 
+        <h1>Name: ${it.name}</h1>
+    <!-- Custom Styles for table -->
+    <style type="text/css">
+        .TEST {
+            background-color: orange
+        }   
+        .STAGING {
+            background-color: yellow
+        }   
+        .PRODUCTION {
+            background-color: lightgreen
+        }
+        .JENKINS {
+            background-color: lightblue
+        }
+    </style>
+
+    <script>
+      function deploy() {
+        var app = 'aaa'
+        var version = document.getElementById('versionId').value;
+        var environment = document.getElementById('environmentId').value;
+        document.getElementById('msg').innerHTML = "Deploying VERSION [" + version + "] to ENVIRONMENT [" + environment + "]. Please wait ...";
+        app.deploy(version, environment, function(t) {
+          document.getElementById('msg').innerHTML = t.responseObject();
+        })
+      }
+      function execute() {
+         document.f1.submit();
+      }
+    </script>
+
+
+            
+    <table class="pane bigtable" style='background-color:lightgreen;'>
+        <tr>
+          <td>
+<form name="f1" method="post" action="execute">
+            <div align='center'>
+               <f:entry title="JobId" field="jobId">
+                    <f:textbox />
+               </f:entry>
+               <f:entry title="startDate" field="startDate">
+                    <f:textbox />
+               </f:entry>
+               <f:entry title="endDate" field="endDate">
+                    <f:textbox />
+               </f:entry>               
+                ${%main.view.deploy.app}
+                
+                <a id="deployLink" title="{%main.view.deploy.app.link}" href="" onclick="execute(); return false;">
+                    <img title="{%main.view.build.parameters}" alt="{%main.view.build.parameters}" src="{rootURL}/images/24x24/clock.png" border="0" />
+                </a>
+                
+                <p>
+                  <div id="msg" />
+                </p>
+                </div>
+</form>        
+          </td>
+        </tr>
+    </table>
+    <h2>{%main.view.server.title}</h2>
+
+        <table class="pane bigtable">
+            <tr style="background-color: lightgrey">
+                <th>INST_ID</th>
+                <th>EXEC_ID</th>
+                <th>JOB ID</th>
+                <th>실행상태</th>
+                <th>실행서버</th>
+                <th>시작일시</th>
+                <th>종료일시</th>
+            </tr>
+        
+        <j:forEach var="jobinfo" items="${exelist}">
+                    
+                <tr class="STAGING">
+                    <td>${jobinfo.JOB_INSTANCE_ID}</td>
+                    <td><b>${jobinfo.JOB_EXECUTION_ID}</b></td>
+                    <td>${jobinfo.JOB_NM}</td>
+                    <td>${jobinfo.STATUS}</td>
+                    <td>${jobinfo.HOST_ID}</td>
+                    <td>${jobinfo.CREATE_TIME}</td>
+                    <td>${jobinfo.END_TIME}</td>
+                </tr>
+     </j:forEach>           
+          </table>     
+        </l:main-panel>
+    </l:layout>
+</j:jelly>
