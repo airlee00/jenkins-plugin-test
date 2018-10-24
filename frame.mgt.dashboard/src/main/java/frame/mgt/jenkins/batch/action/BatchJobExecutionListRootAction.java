@@ -16,7 +16,9 @@ import org.kohsuke.stapler.QueryParameter;
 import frame.mgt.jenkins.batch.config.FrameworkRepositoryDbConfiguration;
 import frame.mgt.server.manage.batch.mapper.BatJobInstanceMapper;
 import hudson.Extension;
+import hudson.model.AbstractProject;
 import hudson.model.RootAction;
+import jenkins.model.Jenkins;
 
 /**
  * @author Kohsuke Kawaguchi
@@ -41,26 +43,38 @@ public class BatchJobExecutionListRootAction implements RootAction {
 		return "batch-list";
 	}
 
-	public HttpResponse doExecute(@QueryParameter String jobId, @QueryParameter String startDate,
-			@QueryParameter String endDate) throws Exception {
+	public HttpResponse doExecute(@QueryParameter String jobName, @QueryParameter String startDate,
+			@QueryParameter String endDate, @QueryParameter String pageNumber, @QueryParameter String pageSize) throws Exception {
 
 		SqlSession sqlSession = frameworkRepositoryDbConfiguration.getSqlSessionFactory().openSession();
 		if (sqlSession == null)
 			throw new IllegalArgumentException("SqlSession isn't configured yet");
 
+		Map<String,String> paramMap = new HashMap<String,String>();
+		paramMap.put("JOB_NM",jobName);
+		paramMap.put("START_DATE",startDate);
+		paramMap.put("END_DATE",endDate);
+		paramMap.put("pageNumber", (pageNumber==null||"".equals(pageNumber)?"0":pageNumber));
+		paramMap.put("pageSize",pageSize==null||"".equals(pageSize)?"10":pageSize);
 		List<Map> list = new ArrayList<Map>();
 		try {
-			Map<String,String> paramMap = new HashMap<String,String>();
-			paramMap.put("JOB_NM",jobId);
-			paramMap.put("START_DATE",startDate);
-			paramMap.put("END_DATE",endDate);
 			LOGGER.info("=============param====>"+paramMap);	
 			BatJobInstanceMapper mapper = sqlSession.getMapper(BatJobInstanceMapper.class);
 			list = mapper.getBatJobExecutionList(paramMap);
+			if(list != null) {
+				for(Map map : list) {
+					final AbstractProject buildJob = Jenkins.getInstance().getItemByFullName(""+map.get("JOB_NM"), AbstractProject.class);
+					if( buildJob != null) {
+						map.put("RESULT", buildJob.getLastBuild().getResult());
+						map.put("BUILD_NUMBER",buildJob.getLastBuild().number);
+					}
+				}
+				LOGGER.info("=============list====>"+ list);	
+			}
 		} finally {
 			sqlSession.close();
 		}
-		return HttpResponses.forwardToView(this, "index").with("exelist", list);
+		return HttpResponses.forwardToView(this, "index").with("exelist", list).with(paramMap);
 
 	}
 }

@@ -73,20 +73,22 @@
         /*  AND J.SYS_KEY = #{SYS_KEY}*/
         </if> 
         WHERE 1 = 1 
-        <if test = "START_DATE != null"> 
+        <if test = "START_DATE != null and START_DATE !=''"> 
             <![CDATA[ AND DATE_FORMAT(A.START_TIME, '%Y-%m-%d %H:%i:%s') >= CONCAT(#{START_DATE ,javaType=String, jdbcType=TIMESTAMP} , ' 00:00:00') ]]> 
         </if>
-        <if test = "END_DATE != null"> 
+        <if test = "END_DATE != null and END_DATE != ''"> 
             <![CDATA[ AND DATE_FORMAT(A.START_TIME, '%Y-%m-%d %H:%i:%s') <= CONCAT(#{END_DATE ,javaType=String, jdbcType=TIMESTAMP} , ' 23:59:59') ]]>
         </if> 
-        <if test = "JOB_EXECUTION_ID != null"> 
+        <if test = "JOB_EXECUTION_ID != null and JOB_EXECUTION_ID !=''"> 
             AND A.JOB_EXECUTION_ID = #{JOB_EXECUTION_ID ,javaType=String, jdbcType=VARCHAR}
         </if>
-        <if test = "JCHRGPSN_KEY != null"> 
+        <if test = "JCHRGPSN_KEY != null and JCHRGPSN_KEY !=''"> 
             AND E.JCHRGPSN_KEY = #{JCHRGPSN_KEY} 
         </if> 
         /* ORDER BY a.JOB_EXECUTION_ID */ 
         ORDER BY a.JOB_EXECUTION_ID DESC 
+        LIMIT 10
+        OFFSET 0
     </select>
     
 
