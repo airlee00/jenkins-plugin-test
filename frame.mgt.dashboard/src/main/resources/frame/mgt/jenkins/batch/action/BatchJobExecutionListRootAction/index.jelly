@@ -4,6 +4,8 @@
 	xmlns:f="/lib/form">
 	<script
 		src="http://cdnjs.cloudflare.com/ajax/libs/superagent/0.15.7/superagent.min.js" />
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>		
 	<l:layout title="Greeting">
 		<l:main-panel>
 			<!-- Custom Styles for table -->
@@ -20,9 +22,65 @@
 				.JENKINS {
 				    background-color: lightblue
 				}
+				/* Style the tab */
+				.tab {
+				    overflow: hidden;
+				    border: 1px solid #ccc;
+				    background-color: #f1f1f1;
+				}
+				
+				/* Style the buttons that are used to open the tab content */
+				.tab button {
+				    background-color: inherit;
+				    float: left;
+				    border: none;
+				    outline: none;
+				    cursor: pointer;
+				    padding: 14px 16px;
+				    transition: 0.3s;
+				}
+				
+				/* Change background color of buttons on hover */
+				.tab button:hover {
+				    background-color: #ddd;
+				}
+				
+				/* Create an active/current tablink class */
+				.tab button.active {
+				    background-color: #ccc;
+				}
+				
+				/* Style the tab content */
+				.tabcontent {
+				    display: none;
+				    padding: 6px 12px;
+				    border: 1px solid #ccc;
+				    border-top: none;
+				}
 			</style>
 
 			<script>
+				function openCity(evt, cityName) {
+				    // Declare all variables
+				    var i, tabcontent, tablinks;
+				
+				    // Get all elements with class="tabcontent" and hide them
+				    tabcontent = document.getElementsByClassName("tabcontent");
+				    for (i = 0; i &lt; tabcontent.length; i++) {
+				        tabcontent[i].style.display = "none";
+				    }
+				
+				    // Get all elements with class="tablinks" and remove the class "active"
+				    tablinks = document.getElementsByClassName("tablinks");
+				    for (i = 0; i &lt; tablinks.length; i++) {
+				        tablinks[i].className = tablinks[i].className.replace(" active", "");
+				    }
+				
+				    // Show the current tab, and add an "active" class to the button that opened the tab
+				    document.getElementById(cityName).style.display = "block";
+				    evt.currentTarget.className += " active";
+				}
+
 				function deploy() {
 					var app = 'aaa'
 					var version = document.getElementById('versionId').value;
@@ -32,6 +90,7 @@
 					    document.getElementById('msg').innerHTML = t.responseObject();
 					})
 				}
+				
 				function execute() {
 				    document.f1.submit();
 				}
@@ -58,38 +117,60 @@
 				<input type="hidden" id="pageNumber" name="pageNumber"	value="${pageNumber}" />
 				<input type="hidden" id="pageSize" name="pageSize"	value="${pageSize}" />
 			</form>
-			<table class="pane bigtable">
-				<tr style="background-color: lightgrey">
-					<th>INST_ID</th>
-					<th>EXEC_ID</th>
-					<th>JOB ID</th>
-					<th>실행상태</th>
-					<th>실행서버</th>
-					<th>시작일시</th>
-					<th>종료일시</th>
-					<th>JENKINS상태</th>
-				</tr>
-				<j:forEach var="jobinfo" items="${exelist}">
-					<tr class="STAGING">
-						<td>${jobinfo.JOB_INSTANCE_ID}</td>
-						<td>
-							<b>${jobinfo.JOB_EXECUTION_ID}</b>
-						</td>
-						<td>
-						<a href="../job/${jobinfo.JOB_NM}" >${jobinfo.JOB_NM}</a>
-						<a id="deployLink" href="../job/${jobinfo.JOB_NM}">
-                           <img title="Search" alt="Search"    src="{rootURL}/images/16x16/clock.png" border="0" />
-                         </a>
-						</td>
-						<td>${jobinfo.STATUS}</td>
-						<td>${jobinfo.HOST_ID}</td>
-						<td>${jobinfo.CREATE_TIME}</td>
-						<td>${jobinfo.END_TIME}</td>
-						<td><a href="../job/${jobinfo.JOB_NM}/${jobinfo.BUILD_NUMBER}/console">${jobinfo.RESULT}</a>
-						</td>
-					</tr>
-				</j:forEach>
-			</table>
+			
+		<!-- Tab links -->
+		<div class="tab">
+		  <button class="tablinks" onclick="openCity(event, 'London')">배치실행목록</button>
+		  <button class="tablinks" onclick="openCity(event, 'Paris')">배치실행정보</button>
+		  <button class="tablinks" onclick="openCity(event, 'Tokyo')">스템실행정보</button>
+		</div>
+		
+		<!-- Tab content -->
+		<div id="London" class="tabcontent" style="display:block">
+		            <table class="pane bigtable">
+		                <tr style="background-color: lightgrey">
+		                    <th>INST_ID</th>
+		                    <th>EXEC_ID</th>
+		                    <th>JOB ID</th>
+		                    <th>실행상태</th>
+		                    <th>실행서버</th>
+		                    <th>시작일시</th>
+		                    <th>종료일시</th>
+		                    <th>JENKINS상태</th>
+		                </tr>
+		                <j:forEach var="jobinfo" items="${exelist}">
+		                    <tr class="STAGING">
+		                        <td>${jobinfo.JOB_INSTANCE_ID}</td>
+		                        <td>
+		                            <b>${jobinfo.JOB_EXECUTION_ID}</b>
+		                        </td>
+		                        <td>
+		                        <a href="javascript:openCity(event, 'Paris')" >${jobinfo.JOB_NM}</a>
+		                        <a id="deployLink" href="../job/${jobinfo.JOB_NM}">
+		                           <img title="Search" alt="Search"    src="{rootURL}/images/16x16/clock.png" border="0" />
+		                         </a>
+		                        </td>
+		                        <td>${jobinfo.STATUS}</td>
+		                        <td>${jobinfo.HOST_ID}</td>
+		                        <td>${jobinfo.CREATE_TIME}</td>
+		                        <td>${jobinfo.END_TIME}</td>
+		                        <td><a href="../job/${jobinfo.JOB_NM}/${jobinfo.BUILD_NUMBER}/console">${jobinfo.RESULT}</a>
+		                        </td>
+		                    </tr>
+		                </j:forEach>
+		            </table>
+		</div>
+		
+		<div id="Paris" class="tabcontent">
+		  <h3>Paris</h3>
+		  <p>Paris is the capital of France.</p> 
+		</div>
+		
+		<div id="Tokyo" class="tabcontent">
+		  <h3>Tokyo</h3>
+		  <p>Tokyo is the capital of Japan.</p>
+		</div>
+
 		</l:main-panel>
 	</l:layout>
 </j:jelly>

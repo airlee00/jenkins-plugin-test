@@ -77,4 +77,7 @@ public class BatchJobExecutionListRootAction implements RootAction {
 		return HttpResponses.forwardToView(this, "index").with("exelist", list).with(paramMap);
 
 	}
+	
+	//탭2 batchService.getBatJobExecutionDetailList : {"JOB_EXECUTION_ID":"2759","JOB_ID":"sample_db2db"}: 
+	//탭3 batchService.getBatStepExecution.json{"searchData":{"JOB_EXECUTION_ID":"2759"}}: 
 }
