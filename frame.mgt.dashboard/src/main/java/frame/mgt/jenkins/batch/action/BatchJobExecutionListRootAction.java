@@ -12,6 +12,7 @@ import org.apache.ibatis.session.SqlSession;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.HttpResponses;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.bind.JavaScriptMethod;
 
 import frame.mgt.jenkins.batch.config.FrameworkRepositoryDbConfiguration;
 import frame.mgt.server.manage.batch.mapper.BatJobInstanceMapper;
@@ -79,5 +80,50 @@ public class BatchJobExecutionListRootAction implements RootAction {
 	}
 	
 	//탭2 batchService.getBatJobExecutionDetailList : {"JOB_EXECUTION_ID":"2759","JOB_ID":"sample_db2db"}: 
+	public HttpResponse doGetList(@QueryParameter String jobExecutionId, @QueryParameter String jobId) throws Exception {
+
+		SqlSession sqlSession = frameworkRepositoryDbConfiguration.getSqlSessionFactory().openSession();
+		if (sqlSession == null)
+			throw new IllegalArgumentException("SqlSession isn't configured yet");
+
+		Map<String,String> paramMap = new HashMap<String,String>();
+		paramMap.put("JOB_EXECUTION_ID",jobExecutionId);
+		paramMap.put("JOB_ID",jobId);
+        
+		Map<?,?> resultMap = new HashMap();
+		try {
+			LOGGER.info("=============param====>"+paramMap);	
+			BatJobInstanceMapper mapper = sqlSession.getMapper(BatJobInstanceMapper.class);
+			resultMap = mapper.getBatJobExecutionDetailList(paramMap);
+		} finally {
+			sqlSession.close();
+		}
+		return HttpResponses.forwardToView(this, "index2").with("resultMap", resultMap).with(paramMap);
+
+	}
+	
+	@JavaScriptMethod
+	public Map getList2(String jobExecutionId, String jobId) throws Exception {
+
+		SqlSession sqlSession = frameworkRepositoryDbConfiguration.getSqlSessionFactory().openSession();
+		if (sqlSession == null)
+			throw new IllegalArgumentException("SqlSession isn't configured yet");
+
+		Map<String,String> paramMap = new HashMap<String,String>();
+		paramMap.put("JOB_EXECUTION_ID",jobExecutionId);
+		paramMap.put("JOB_ID",jobId);
+        
+		Map<?,?> resultMap = new HashMap();
+		try {
+			LOGGER.info("=============param====>"+paramMap);	
+			BatJobInstanceMapper mapper = sqlSession.getMapper(BatJobInstanceMapper.class);
+			resultMap = mapper.getBatJobExecutionDetailList(paramMap);
+		} finally {
+			sqlSession.close();
+		}
+		return resultMap;
+		//return HttpResponses.forwardToView(this, "index2").with("resultMap", resultMap).with(paramMap);
+
+	}
 	//탭3 batchService.getBatStepExecution.json{"searchData":{"JOB_EXECUTION_ID":"2759"}}: 
 }

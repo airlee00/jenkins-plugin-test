@@ -91,7 +91,110 @@
         OFFSET 0
     </select>
     
-
+    <select id="getBatJobExecutionDetailList" parameterType="hashMap" resultType="hashMap">
+        SELECT
+            A.JOB_EXECUTION_ID
+            ,A.VERSION 
+            ,A.JOB_INSTANCE_ID
+            ,C.JOB_NAME AS JOB_NM
+            /*,F.BAT_JOB_NM */
+            /*,E.PRCT_TP */
+            /*,E.FCAST_TRX_CNT */
+            /*,E.DATASRC_TP */
+            /*,E.JCHRGPSN_KEY */
+            /*,E.JCHRGPSN_CNTCTPT */
+            /*,E.COMMIT_CNT */
+            ,D.HOST_ID
+            ,D.APSVR_ID
+            ,D.BAT_JOB_RUN_KEY
+            ,D.HOST_IP_ADDR
+            ,A.CREATE_TIME 
+            ,A.START_TIME
+            ,A.END_TIME
+            ,A.STATUS
+            ,A.EXIT_CODE
+            ,A.EXIT_MESSAGE
+            ,A.LAST_UPDATED
+            ,B.SHORT_CONTEXT
+            ,B.SERIALIZED_CONTEXT
+            /*,J.SYS_NM */
+            /*,I.PROJ_NM */
+            , (SELECT CD_DESCR FROM fw.ap_ide_COMN_CD WHERE GRP_CD = 'BATCH_URL' AND CD = #{SERVER} AND USE_YN = 'Y') AS URL
+            , CONCAT(
+            LPAD(TRUNCATE(    (TO_SECONDS(A.END_TIME) - TO_SECONDS(A.START_TIME))/(60*60*24)  , 0), 2, '0') , ':',
+            LPAD(TRUNCATE(MOD((TO_SECONDS(A.END_TIME) - TO_SECONDS(A.START_TIME))/(60*60), 24), 0), 2, '0') , ':',
+            LPAD(TRUNCATE(MOD((TO_SECONDS(A.END_TIME) - TO_SECONDS(A.START_TIME))/(60)   , 60), 0), 2, '0') , ':',
+            LPAD(         MOD( TO_SECONDS(A.END_TIME) - TO_SECONDS(A.START_TIME)         , 60)    , 2, '0') 
+            ) "EXE_TIME"
+            , COUNT(*) OVER () ROWCNT 
+        FROM
+            fw.TB_BAT_JOB_EXECUTION A 
+        JOIN fw.TB_BAT_JOB_INSTANCE C 
+            ON A.JOB_INSTANCE_ID = C.JOB_INSTANCE_ID 
+        JOIN fw.TB_BAT_JOB_EXECUTION_CONTEXT B 
+            ON A.JOB_EXECUTION_ID = B.JOB_EXECUTION_ID 
+        JOIN fw.tb_bat_apsvr_BATPRCT D 
+            ON A.JOB_EXECUTION_ID = D.JOB_EXECUTION_ID 
+        /*JOIN fw.TB_BAT_JOB_RUN E */ 
+        /*  ON D.BAT_JOB_RUN_KEY = E.BAT_JOB_RUN_KEY */
+        /*JOIN fw.TB_BAT_JOB F  */
+        /*  ON E.RSC_KEY = F.RSC_KEY */
+        /*JOIN TB_RSC G  */
+        /*  ON F.RSC_KEY = G.RSC_KEY */ 
+        /*JOIN TB_PROJ H  */
+        /*  ON G.PROJ_KEY = H.PROJ_KEY */ 
+        /*JOIN TB_JOB_PROJ I  */
+        /*  ON H.JOB_PROJ_KEY = I.JOB_PROJ_KEY */
+        /*JOIN TB_SYS J  */
+        /*  ON I.SYS_KEY = J.SYS_KEY */
+        WHERE 1 = 1 
+            AND A.JOB_EXECUTION_ID = #{JOB_EXECUTION_ID ,javaType=String, jdbcType=NUMERIC}
+        ORDER BY a.JOB_EXECUTION_ID 
+    </select>
+    
+<select id="getBatStepExecution" parameterType="hashMap" resultType="hashMap">
+        SELECT
+            A.STEP_EXECUTION_ID
+            ,A.VERSION
+            ,A.STEP_NAME
+            ,A.JOB_EXECUTION_ID
+            ,A.START_TIME
+            ,A.END_TIME
+            ,A.STATUS
+            ,(A.COMMIT_COUNT) COMMIT_COUNT
+            ,(A.READ_COUNT) READ_COUNT
+            ,(A.FILTER_COUNT) FILTER_COUNT
+            ,(A.WRITE_COUNT) WRITE_COUNT
+            ,(A.READ_SKIP_COUNT) READ_SKIP_COUNT
+            ,(A.WRITE_SKIP_COUNT) WRITE_SKIP_COUNT
+            ,(A.PROCESS_SKIP_COUNT ) PROCESS_SKIP_COUNT
+            ,(A.ROLLBACK_COUNT) ROLLBACK_COUNT
+            ,A.EXIT_CODE
+            ,A.EXIT_MESSAGE
+            ,A.LAST_UPDATED
+            ,B.SHORT_CONTEXT
+            ,B.SERIALIZED_CONTEXT
+            ,R.HOST_ID
+            ,R.APSVR_ID
+            , CONCAT(
+            LPAD(TRUNCATE(    (TO_SECONDS(A.END_TIME) - TO_SECONDS(A.START_TIME))/(60*60*24)  , 0), 2, '0') , ':',
+            LPAD(TRUNCATE(MOD((TO_SECONDS(A.END_TIME) - TO_SECONDS(A.START_TIME))/(60*60), 24), 0), 2, '0') , ':',
+            LPAD(TRUNCATE(MOD((TO_SECONDS(A.END_TIME) - TO_SECONDS(A.START_TIME))/(60)   , 60), 0), 2, '0') , ':',
+            LPAD(         MOD( TO_SECONDS(A.END_TIME) - TO_SECONDS(A.START_TIME)         , 60)    , 2, '0') 
+            ) "GAP_TIME"
+            ,COUNT(*) OVER () ROWCNT
+        FROM
+            fw.TB_BAT_STEP_EXECUTION A LEFT OUTER JOIN fw.TB_BAT_STEP_EXECUTION_CONTEXT B
+                ON A.STEP_EXECUTION_ID = B.STEP_EXECUTION_ID
+            ,fw.tb_bat_apsvr_BATPRCT R
+        WHERE 1 = 1
+            AND
+                A.JOB_EXECUTION_ID = #{JOB_EXECUTION_ID}
+            AND    
+                A.JOB_EXECUTION_ID = R.JOB_EXECUTION_ID    
+        ORDER BY 
+                A.START_TIME, A.STEP_EXECUTION_ID
+    </select>    
 </mapper>
 
 

@@ -82,7 +82,7 @@
 				}
 
 				function deploy() {
-					var app = 'aaa'
+					var app = <st:bind value="${it}"/>
 					var version = document.getElementById('versionId').value;
 					var environment = document.getElementById('environmentId').value;
 					document.getElementById('msg').innerHTML = "Deploying VERSION [" + version + "] to ENVIRONMENT [" + environment + "]. Please wait ...";
@@ -94,6 +94,24 @@
 				function execute() {
 				    document.f1.submit();
 				}
+				
+				function getList2(exeId, jobId) {
+				    var app = <st:bind value="${it}"/>
+				    document.getElementById('msg').innerHTML = " Please wait ...";
+				    app.getList2(exeId, jobId, function(t) {
+				        var res = t
+                        document.getElementById('JOB_NM').value = res.responseJSON.JOB_NM;
+                         document.getElementById('STATUS').value = res.responseJSON.EXIT_CODE;
+                    })
+                }
+                
+                function getlist(exeId, jobId) {
+                    var form = document.f2;
+                    form.jobExecutionId.value = exeId;
+                    form.jobId.value = jobId;
+                    form.submit();
+                }
+                
 			</script>
 
 			<form name="f1" method="get" action="execute">
@@ -117,7 +135,10 @@
 				<input type="hidden" id="pageNumber" name="pageNumber"	value="${pageNumber}" />
 				<input type="hidden" id="pageSize" name="pageSize"	value="${pageSize}" />
 			</form>
-			
+	           <form name="f2" method="get" action="getList">
+                <input type="hidden" id="jobExecutionId" name="jobExecutionId"   />
+                <input type="hidden" id="jobId" name="jobId"   />
+            </form>		
 		<!-- Tab links -->
 		<div class="tab">
 		  <button class="tablinks" onclick="openCity(event, 'London')">배치실행목록</button>
@@ -145,7 +166,7 @@
 		                            <b>${jobinfo.JOB_EXECUTION_ID}</b>
 		                        </td>
 		                        <td>
-		                        <a href="javascript:openCity(event, 'Paris')" >${jobinfo.JOB_NM}</a>
+		                        <a href="javascript:getList2('${jobinfo.JOB_EXECUTION_ID}', '${jobinfo.JOB_NM}')" >${jobinfo.JOB_NM}</a>
 		                        <a id="deployLink" href="../job/${jobinfo.JOB_NM}">
 		                           <img title="Search" alt="Search"    src="{rootURL}/images/16x16/clock.png" border="0" />
 		                         </a>
@@ -162,8 +183,49 @@
 		</div>
 		
 		<div id="Paris" class="tabcontent">
-		  <h3>Paris</h3>
-		  <p>Paris is the capital of France.</p> 
+
+       <table cellpadding="2" cellspacing="1" class="search_table" style="width: 100%" >
+                <colgroup>
+                    <col width="10%"/>
+                    <col width="28%"/>
+                    <col width="10%"/>
+                    <col width="28%"/>
+                    <col width="10%"/>
+                    <col width="14%"/>
+                </colgroup>
+                <tbody><tr>
+                    <th>실행서버</th>
+                    <td class="left"><input type="text" name="SYS_NM" id="SYS_NM" style="width: 94%" class="input_readonly" readonly="readonly"/></td>
+                    <th>서버IP</th>
+                    <td class="left" colspan="3"><input type="text" name="PROJ_NM" id="PROJ_NM" style="width: 50%" class="input_readonly" readonly="readonly"/></td>
+                </tr>
+                <tr>
+                    <th>잡ID</th>
+                    <td class="left"><input type="text" name="JOB_NM" id="JOB_NM" style="width: 94%" class="input_readonly" readonly="readonly"/></td>
+                    <th>INST_ID</th>
+                    <td class="left"><input type="text" name="JOB_INSTANCE_ID" id="JOB_INSTANCE_ID" style="width: 94%" class="input_readonly" readonly="readonly"/></td>
+                    <th>EXEC_ID</th>
+                    <td class="left"><input type="text" name="JOB_EXECUTION_ID_HD" id="JOB_EXECUTION_ID_HD" style="width: 92%" class="input_readonly" readonly="readonly"/></td>
+                </tr>
+                <tr>
+                    <th>실행상태</th>
+                    <td class="left"><input type="text" name="STATUS" id="STATUS" style="width: 94%" class="input_readonly" readonly="readonly"/></td>
+                    <th>종료코드</th>
+                    <td class="left" colspan="3"><input type="text" name="EXIT_CODE" id="EXIT_CODE" style="width: 50%" class="input_readonly" readonly="readonly"/></td>
+                </tr>
+                <tr>
+                    <th>시작일시</th>
+                    <td class="left"><input type="text" name="CREATE_TIME" id="CREATE_TIME" style="width: 94%" class="input_readonly" readonly="readonly"/></td>
+                    <th>종료일시</th>
+                    <td class="left"><input type="text" name="END_TIME" id="END_TIME" style="width: 94%" class="input_readonly" readonly="readonly"/></td>
+                    <th>수행시간</th>
+                    <td class="left"><input type="text" name="EXE_TIME" id="EXE_TIME" style="width: 92%" class="input_readonly" readonly="readonly"/></td>
+                </tr>
+                <tr>
+                    <th>종료메시지</th>
+                    <td class="left" colspan="5"><textarea name="EXIT_MESSAGE" id="EXIT_MESSAGE" style="width: 97%" class="textarea_readonly" readonly="readonly" rows="3"></textarea></td>
+                </tr>
+            </tbody></table>
 		</div>
 		
 		<div id="Tokyo" class="tabcontent">

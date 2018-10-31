@@ -1,0 +1,77 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler"
+	xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson"
+	xmlns:f="/lib/form">
+	
+		<!-- Tab content -->
+		<div id="London" class="tabcontent" style="display:block">
+		            <table class="pane bigtable">
+		                <tr style="background-color: lightgrey">
+		                    <th>INST_ID</th>
+		                    <th>EXEC_ID</th>
+		                    <th>JOB ID</th>
+		                    <th>실행상태</th>
+		                    <th>실행서버</th>
+		                    <th>시작일시</th>
+		                    <th>종료일시</th>
+		                    <th>JENKINS상태</th>
+		                </tr>
+		                    <tr class="STAGING">
+		                        <td>${resultMap.JOB_INSTANCE_ID}</td>
+		                        <td>
+		                            <b>${resultMap.JOB_EXECUTION_ID}</b>
+		                        </td>
+		                        <td>${resultMap.JOB_NM}           </td>
+		                        <td>${resultMap.STATUS}</td>
+		                        <td>${resultMap.HOST_ID}</td>
+		                        <td>${resultMap.CREATE_TIME}</td>
+		                        <td>${resultMap.END_TIME}</td>
+		                        <td>${resultMap.RESULT}
+		                        </td>
+		                    </tr>
+		            </table>
+		</div>
+
+<table cellpadding="2" cellspacing="1" class="search_table" style="width: 100%" >
+                <colgroup>
+                    <col width="10%"/>
+                    <col width="28%"/>
+                    <col width="10%"/>
+                    <col width="28%"/>
+                    <col width="10%"/>
+                    <col width="14%"/>
+                </colgroup>
+                <tbody><tr>
+                    <th>실행서버</th>
+                    <td class="left"><input type="text" name="SYS_NM" id="SYS_NM" style="width: 94%" class="input_readonly" readonly="readonly"/></td>
+                    <th>서버IP</th>
+                    <td class="left" colspan="3"><input type="text" name="PROJ_NM" id="PROJ_NM" style="width: 50%" class="input_readonly" readonly="readonly"/></td>
+                </tr>
+                <tr>
+                    <th>잡ID</th>
+                    <td class="left"><input type="text" name="JOB_NM" id="JOB_NM" style="width: 94%" class="input_readonly" readonly="readonly"/></td>
+                    <th>INST_ID</th>
+                    <td class="left"><input type="text" name="JOB_INSTANCE_ID" id="JOB_INSTANCE_ID" style="width: 94%" class="input_readonly" readonly="readonly"/></td>
+                    <th>EXEC_ID</th>
+                    <td class="left"><input type="text" name="JOB_EXECUTION_ID_HD" id="JOB_EXECUTION_ID_HD" style="width: 92%" class="input_readonly" readonly="readonly"/></td>
+                </tr>
+                <tr>
+                    <th>실행상태</th>
+                    <td class="left"><input type="text" name="STATUS" id="STATUS" style="width: 94%" class="input_readonly" readonly="readonly"/></td>
+                    <th>종료코드</th>
+                    <td class="left" colspan="3"><input type="text" name="EXIT_CODE" id="EXIT_CODE" style="width: 50%" class="input_readonly" readonly="readonly"/></td>
+                </tr>
+                <tr>
+                    <th>시작일시</th>
+                    <td class="left"><input type="text" name="CREATE_TIME" id="CREATE_TIME" style="width: 94%" class="input_readonly" readonly="readonly"/></td>
+                    <th>종료일시</th>
+                    <td class="left"><input type="text" name="END_TIME" id="END_TIME" style="width: 94%" class="input_readonly" readonly="readonly"/></td>
+                    <th>수행시간</th>
+                    <td class="left"><input type="text" name="EXE_TIME" id="EXE_TIME" style="width: 92%" class="input_readonly" readonly="readonly"/></td>
+                </tr>
+                <tr>
+                    <th>종료메시지</th>
+                    <td class="left" colspan="5"><textarea name="EXIT_MESSAGE" id="EXIT_MESSAGE" style="width: 97%" class="textarea_readonly" readonly="readonly" rows="3"></textarea></td>
+                </tr>
+            </tbody></table>
+</j:jelly>
