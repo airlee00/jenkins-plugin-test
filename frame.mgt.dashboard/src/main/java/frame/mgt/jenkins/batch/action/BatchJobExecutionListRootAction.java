@@ -33,7 +33,7 @@ public class BatchJobExecutionListRootAction implements RootAction {
 	FrameworkRepositoryDbConfiguration frameworkRepositoryDbConfiguration;
 
 	public String getDisplayName() {
-		return "BachJobExecution";
+		return "Bach-JobExecution";
 	}
 
 	public String getIconFileName() {
@@ -41,7 +41,7 @@ public class BatchJobExecutionListRootAction implements RootAction {
 	}
 
 	public String getUrlName() {
-		return "batch-list";
+		return "batchjob";
 	}
 
 	public HttpResponse doExecute(@QueryParameter String jobName, @QueryParameter String startDate,
@@ -70,7 +70,7 @@ public class BatchJobExecutionListRootAction implements RootAction {
 						map.put("BUILD_NUMBER",buildJob.getLastBuild().number);
 					}
 				}
-				LOGGER.info("=============list====>"+ list);	
+				//LOGGER.info("=============list====>"+ list);	
 			}
 		} finally {
 			sqlSession.close();
@@ -79,7 +79,14 @@ public class BatchJobExecutionListRootAction implements RootAction {
 
 	}
 	
-	//탭2 batchService.getBatJobExecutionDetailList : {"JOB_EXECUTION_ID":"2759","JOB_ID":"sample_db2db"}: 
+	/**
+	 * 사용x
+	 * @param jobExecutionId
+	 * @param jobId
+	 * @return
+	 * @throws Exception
+	 * @Deprecated
+	 */
 	public HttpResponse doGetList(@QueryParameter String jobExecutionId, @QueryParameter String jobId) throws Exception {
 
 		SqlSession sqlSession = frameworkRepositoryDbConfiguration.getSqlSessionFactory().openSession();
@@ -102,8 +109,16 @@ public class BatchJobExecutionListRootAction implements RootAction {
 
 	}
 	
+	//batchService.getBatJobExecutionDetailList : {"JOB_EXECUTION_ID":"2759","JOB_ID":"sample_db2db"}: 
+	/**
+	 * job실행 상세
+	 * @param jobExecutionId
+	 * @param jobId
+	 * @return
+	 * @throws Exception
+	 */
 	@JavaScriptMethod
-	public Map getList2(String jobExecutionId, String jobId) throws Exception {
+	public Map getJobDetail(String jobExecutionId, String jobId) throws Exception {
 
 		SqlSession sqlSession = frameworkRepositoryDbConfiguration.getSqlSessionFactory().openSession();
 		if (sqlSession == null)
@@ -125,5 +140,32 @@ public class BatchJobExecutionListRootAction implements RootAction {
 		//return HttpResponses.forwardToView(this, "index2").with("resultMap", resultMap).with(paramMap);
 
 	}
-	//탭3 batchService.getBatStepExecution.json{"searchData":{"JOB_EXECUTION_ID":"2759"}}: 
+	//batchService.getBatStepExecution.json{"searchData":{"JOB_EXECUTION_ID":"2759"}}: 
+	/**
+	 * 스텝 상세 리스트 조회 
+	 * @param jobExecutionId
+	 * @return
+	 * @throws Exception
+	 */
+	@JavaScriptMethod
+	public List<Map> getStepList(String jobExecutionId) throws Exception {
+
+		SqlSession sqlSession = frameworkRepositoryDbConfiguration.getSqlSessionFactory().openSession();
+		if (sqlSession == null)
+			throw new IllegalArgumentException("SqlSession isn't configured yet");
+
+		Map<String,String> paramMap = new HashMap<String,String>();
+		paramMap.put("JOB_EXECUTION_ID",jobExecutionId);
+        
+		List<Map> resultList = new ArrayList();
+		try {
+			LOGGER.info("=============param====>"+paramMap);	
+			BatJobInstanceMapper mapper = sqlSession.getMapper(BatJobInstanceMapper.class);
+			resultList = mapper.getBatStepExecution(paramMap);
+		} finally {
+			sqlSession.close();
+		}
+		return resultList;
+
+	}
 }

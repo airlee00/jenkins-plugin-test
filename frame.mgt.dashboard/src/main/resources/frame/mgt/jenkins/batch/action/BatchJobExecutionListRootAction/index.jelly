@@ -6,7 +6,7 @@
 		src="http://cdnjs.cloudflare.com/ajax/libs/superagent/0.15.7/superagent.min.js" />
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>		
-	<l:layout title="Greeting">
+	<l:layout title="BatchJob">
 		<l:main-panel>
 			<!-- Custom Styles for table -->
 			<style type="text/css">
@@ -36,7 +36,7 @@
 				    border: none;
 				    outline: none;
 				    cursor: pointer;
-				    padding: 14px 16px;
+				    padding: 7px 10px;
 				    transition: 0.3s;
 				}
 				
@@ -60,7 +60,7 @@
 			</style>
 
 			<script>
-				function openCity(evt, cityName) {
+				function openTab(evt, cityName) {
 				    // Declare all variables
 				    var i, tabcontent, tablinks;
 				
@@ -78,7 +78,7 @@
 				
 				    // Show the current tab, and add an "active" class to the button that opened the tab
 				    document.getElementById(cityName).style.display = "block";
-				    evt.currentTarget.className += " active";
+				    document.getElementById(cityName + '_btn').className += " active";
 				}
 
 				function deploy() {
@@ -95,16 +95,39 @@
 				    document.f1.submit();
 				}
 				
-				function getList2(exeId, jobId) {
+				function getJobDetail(exeId, jobId) {
 				    var app = <st:bind value="${it}"/>
 				    document.getElementById('msg').innerHTML = " Please wait ...";
-				    app.getList2(exeId, jobId, function(t) {
+				    app.getJobDetail(exeId, jobId, function(t) {
 				        var res = t
+                        document.getElementById('HOST_ID').value = res.responseJSON.HOST_ID;
+                        document.getElementById('HOST_IP_ADDR').value = res.responseJSON.HOST_IP_ADDR;
                         document.getElementById('JOB_NM').value = res.responseJSON.JOB_NM;
-                         document.getElementById('STATUS').value = res.responseJSON.EXIT_CODE;
+                        document.getElementById('JOB_INSTANCE_ID').value = res.responseJSON.JOB_INSTANCE_ID;
+                        document.getElementById('JOB_EXECUTION_ID').value = res.responseJSON.JOB_EXECUTION_ID;
+                        document.getElementById('STATUS').value = res.responseJSON.STATUS;
+                        document.getElementById('EXIT_CODE').value = res.responseJSON.EXIT_CODE;
+                        document.getElementById('CREATE_TIME').value = res.responseJSON.CREATE_TIME;
+                        document.getElementById('END_TIME').value = res.responseJSON.END_TIME;
+                        document.getElementById('EXE_TIME').value = res.responseJSON.EXE_TIME;
+                        document.getElementById('EXIT_MESSAGE').value = res.responseJSON.EXIT_MESSAGE;
                     })
+                    document.getElementById('msg').innerHTML = "";
+				    openTab(event, 'Paris')
                 }
-                
+ 
+ 				function getStepList() {
+ 				    var exeId = document.getElementById('JOB_EXECUTION_ID').value;
+				    var app = <st:bind value="${it}"/>
+				    document.getElementById('msg').innerHTML = " Please wait ...";
+				    app.getStepList(exeId, function(t) {
+				        var res = t;
+				        addTable(res.responseJSON)
+                    })
+                    document.getElementById('msg').innerHTML = "";
+				    openTab(event, 'Tokyo')
+                }
+                               
                 function getlist(exeId, jobId) {
                     var form = document.f2;
                     form.jobExecutionId.value = exeId;
@@ -112,6 +135,32 @@
                     form.submit();
                 }
                 
+                function addTable(res){
+			       var insertTable = document.getElementById("stepTable");
+			
+			        var currentRow = insertTable.insertRow();
+			        //var rowIndex = currentRow.rowIndex;
+			 		
+			 		for(var i=0; i &lt; res.length; i++) {
+					var strHTML='<tr>'
+						+'<td>'+ (i+1) + '</td>'
+						+'<td>'+ res[i].STEP_NAME +'</td>'
+						+'<td>'+ res[i].COMMIT_COUNT +'</td>'
+						+'<td>'+ res[i].READ_COUNT +'</td>'
+						+'<td>'+ res[i].WRITE_COUNT +'</td>'
+						+'<td>'+ res[i].STATUS +'</td>'
+						+'<td>'+ res[i].EXIT_CODE +'</td>'
+						+'<td>'+ res[i].START_TIME +'</td>'
+						+'<td>'+ res[i].END_TIME +'</td>'
+						+'<td>'+ res[i].GAP_TIME +'</td>'
+						+'<td><textarea style="width: 100%" class="textarea_readonly" readonly="readonly" rows="2">'+ res[i].EXIT_MESSAGE +'</textarea></td>'
+					    +'</tr>';    
+			         
+			        currentRow.innerHTML = strHTML;
+			        }
+
+               }
+    
 			</script>
 
 			<form name="f1" method="get" action="execute">
@@ -141,15 +190,15 @@
             </form>		
 		<!-- Tab links -->
 		<div class="tab">
-		  <button class="tablinks" onclick="openCity(event, 'London')">배치실행목록</button>
-		  <button class="tablinks" onclick="openCity(event, 'Paris')">배치실행정보</button>
-		  <button class="tablinks" onclick="openCity(event, 'Tokyo')">스템실행정보</button>
+		  <button class="tablinks" id="London_btn" onclick="openTab(event, 'London')">배치실행목록</button>
+		  <button class="tablinks" id="Paris_btn" onclick="openTab(event, 'Paris')">배치실행정보</button>
+		  <button class="tablinks" id="Tokyo_btn" onclick="openTab(event, 'Tokyo')">Step실행정보</button>
 		</div>
 		
 		<!-- Tab content -->
 		<div id="London" class="tabcontent" style="display:block">
 		            <table class="pane bigtable">
-		                <tr style="background-color: lightgrey">
+		                <tr class="header">
 		                    <th>INST_ID</th>
 		                    <th>EXEC_ID</th>
 		                    <th>JOB ID</th>
@@ -166,7 +215,7 @@
 		                            <b>${jobinfo.JOB_EXECUTION_ID}</b>
 		                        </td>
 		                        <td>
-		                        <a href="javascript:getList2('${jobinfo.JOB_EXECUTION_ID}', '${jobinfo.JOB_NM}')" >${jobinfo.JOB_NM}</a>
+		                        <a href="javascript:getJobDetail('${jobinfo.JOB_EXECUTION_ID}', '${jobinfo.JOB_NM}')" >${jobinfo.JOB_NM}</a>
 		                        <a id="deployLink" href="../job/${jobinfo.JOB_NM}">
 		                           <img title="Search" alt="Search"    src="{rootURL}/images/16x16/clock.png" border="0" />
 		                         </a>
@@ -195,9 +244,9 @@
                 </colgroup>
                 <tbody><tr>
                     <th>실행서버</th>
-                    <td class="left"><input type="text" name="SYS_NM" id="SYS_NM" style="width: 94%" class="input_readonly" readonly="readonly"/></td>
+                    <td class="left"><input type="text" name="HOST_ID" id="HOST_ID" style="width: 94%" class="input_readonly" readonly="readonly"/></td>
                     <th>서버IP</th>
-                    <td class="left" colspan="3"><input type="text" name="PROJ_NM" id="PROJ_NM" style="width: 50%" class="input_readonly" readonly="readonly"/></td>
+                    <td class="left" colspan="3"><input type="text" name="HOST_IP_ADDR" id="HOST_IP_ADDR" style="width: 50%" class="input_readonly" readonly="readonly"/></td>
                 </tr>
                 <tr>
                     <th>잡ID</th>
@@ -205,7 +254,7 @@
                     <th>INST_ID</th>
                     <td class="left"><input type="text" name="JOB_INSTANCE_ID" id="JOB_INSTANCE_ID" style="width: 94%" class="input_readonly" readonly="readonly"/></td>
                     <th>EXEC_ID</th>
-                    <td class="left"><input type="text" name="JOB_EXECUTION_ID_HD" id="JOB_EXECUTION_ID_HD" style="width: 92%" class="input_readonly" readonly="readonly"/></td>
+                    <td class="left"><input type="text" name="JOB_EXECUTION_ID" id="JOB_EXECUTION_ID" style="width: 92%" class="input_readonly" readonly="readonly"/></td>
                 </tr>
                 <tr>
                     <th>실행상태</th>
@@ -223,16 +272,39 @@
                 </tr>
                 <tr>
                     <th>종료메시지</th>
-                    <td class="left" colspan="5"><textarea name="EXIT_MESSAGE" id="EXIT_MESSAGE" style="width: 97%" class="textarea_readonly" readonly="readonly" rows="3"></textarea></td>
+                    <td class="left" colspan="5"><textarea name="EXIT_MESSAGE" id="EXIT_MESSAGE" style="width: 100%" class="textarea_readonly" readonly="readonly" rows="2"></textarea></td>
                 </tr>
-            </tbody></table>
+            </tbody>
+         </table>
+         <table>
+				<tbody><tr>
+					<td><a href="javascript:getStepList()" id="inquiry_bnt2"><span>스텝상세조회</span></a></td>
+					<td><a href="#" id="stop_bnt"><span>중지</span></a></td>
+					<td><a href="#" id="delete_bnt"><span>파기</span></a></td>
+				</tr>
+			</tbody>
+	     </table>
 		</div>
 		
 		<div id="Tokyo" class="tabcontent">
-		  <h3>Tokyo</h3>
-		  <p>Tokyo is the capital of Japan.</p>
+			<table class="pane bigtable" id="stepTable">
+				<tbody>
+					<tr class="header">
+						<th>No</th>
+						<th>stepid</th>
+						<th>커밋건수</th>
+						<th>조회건수</th>
+						<th>처리건수</th>
+						<th>실행상태</th>
+						<th>종료코드</th>
+						<th>시작일시</th>
+						<th>종료일시</th>
+						<th>수행시간</th>
+						<th>종료메시지</th>
+					</tr>
+				</tbody>
+			</table>
 		</div>
-
 		</l:main-panel>
 	</l:layout>
 </j:jelly>

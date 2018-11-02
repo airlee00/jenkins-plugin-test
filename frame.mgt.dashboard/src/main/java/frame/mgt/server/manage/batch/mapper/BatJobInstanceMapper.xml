@@ -108,9 +108,9 @@
             ,D.APSVR_ID
             ,D.BAT_JOB_RUN_KEY
             ,D.HOST_IP_ADDR
-            ,A.CREATE_TIME 
-            ,A.START_TIME
-            ,A.END_TIME
+            ,DATE_FORMAT(A.CREATE_TIME, '%Y-%m-%d %h:%m:%s') AS CREATE_TIME 
+            ,DATE_FORMAT(A.START_TIME, '%Y-%m-%d %h:%m:%s') AS START_TIME 
+            ,DATE_FORMAT(A.END_TIME, '%Y-%m-%d %h:%m:%s') AS END_TIME 
             ,A.STATUS
             ,A.EXIT_CODE
             ,A.EXIT_MESSAGE
@@ -158,8 +158,8 @@
             ,A.VERSION
             ,A.STEP_NAME
             ,A.JOB_EXECUTION_ID
-            ,A.START_TIME
-            ,A.END_TIME
+            ,DATE_FORMAT(A.START_TIME, '%Y-%m-%d %h:%m:%s') AS START_TIME 
+            ,DATE_FORMAT(A.END_TIME, '%Y-%m-%d %h:%m:%s') AS END_TIME             
             ,A.STATUS
             ,(A.COMMIT_COUNT) COMMIT_COUNT
             ,(A.READ_COUNT) READ_COUNT
