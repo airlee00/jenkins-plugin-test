@@ -19,6 +19,10 @@ public interface BatJobInstanceMapper {
 //	public List<Map> getBatJobExecutionDayGraph(Map paramMap)   throws Exception;   
 //	
 	public Map getBatJobExecutionDetailList(Map paramMap)   throws Exception;   
+	
+	public int getBatJobExecutionDetailListCount(Map paramMap)   throws Exception;   
+	
+	public int updateBatJob(Map paramMap)   throws Exception;   
 //	
 //    //현재작업상태(메인)
 //    public List<Map> getBatJobExecutionCurrentGraph(Map paramMap) throws Exception;

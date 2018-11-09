@@ -17,6 +17,7 @@ import org.kohsuke.stapler.bind.JavaScriptMethod;
 import frame.mgt.jenkins.batch.config.FrameworkRepositoryDbConfiguration;
 import frame.mgt.server.manage.batch.mapper.BatJobInstanceMapper;
 import hudson.Extension;
+import hudson.model.AbstractDescribableImpl;
 import hudson.model.AbstractProject;
 import hudson.model.RootAction;
 import jenkins.model.Jenkins;
@@ -25,10 +26,11 @@ import jenkins.model.Jenkins;
  * @author Kohsuke Kawaguchi
  */
 @Extension
-public class BatchJobExecutionListRootAction implements RootAction {
+public class BatchJobExecutionRootAction extends AbstractDescribableImpl<BatchJobExecutionDescriptor> implements RootAction {
 	
-	private final static Logger LOGGER = Logger.getLogger(BatchJobExecutionListRootAction.class.getName());
-			
+	private final static Logger LOGGER = Logger.getLogger(BatchJobExecutionRootAction.class.getName());
+
+    
 	@Inject
 	FrameworkRepositoryDbConfiguration frameworkRepositoryDbConfiguration;
 
@@ -51,12 +53,16 @@ public class BatchJobExecutionListRootAction implements RootAction {
 		if (sqlSession == null)
 			throw new IllegalArgumentException("SqlSession isn't configured yet");
 
-		Map<String,String> paramMap = new HashMap<String,String>();
+		
+		Map<String,Object> paramMap = new HashMap<String,Object>();
 		paramMap.put("JOB_NM",jobName);
 		paramMap.put("START_DATE",startDate);
 		paramMap.put("END_DATE",endDate);
-		paramMap.put("pageNumber", (pageNumber==null||"".equals(pageNumber)?"0":pageNumber));
-		paramMap.put("pageSize",pageSize==null||"".equals(pageSize)?"10":pageSize);
+		paramMap.put("pageSize",pageSize);
+		paramMap.put("pageNumber",pageNumber);
+		PageVo vo = new PageVo(pageSize, pageNumber);
+		paramMap.put("LIMIT", vo.getPageLimit());
+		paramMap.put("OFFSET", vo.getPageOffset());
 		List<Map> list = new ArrayList<Map>();
 		try {
 			LOGGER.info("=============param====>"+paramMap);	
@@ -72,6 +78,8 @@ public class BatchJobExecutionListRootAction implements RootAction {
 				}
 				//LOGGER.info("=============list====>"+ list);	
 			}
+			int rowcount = mapper.getBatJobExecutionDetailListCount(paramMap);
+			paramMap.put("TOTAL_COUNT", rowcount);
 		} finally {
 			sqlSession.close();
 		}
@@ -80,38 +88,9 @@ public class BatchJobExecutionListRootAction implements RootAction {
 	}
 	
 	/**
-	 * 사용x
-	 * @param jobExecutionId
-	 * @param jobId
-	 * @return
-	 * @throws Exception
-	 * @Deprecated
-	 */
-	public HttpResponse doGetList(@QueryParameter String jobExecutionId, @QueryParameter String jobId) throws Exception {
-
-		SqlSession sqlSession = frameworkRepositoryDbConfiguration.getSqlSessionFactory().openSession();
-		if (sqlSession == null)
-			throw new IllegalArgumentException("SqlSession isn't configured yet");
-
-		Map<String,String> paramMap = new HashMap<String,String>();
-		paramMap.put("JOB_EXECUTION_ID",jobExecutionId);
-		paramMap.put("JOB_ID",jobId);
-        
-		Map<?,?> resultMap = new HashMap();
-		try {
-			LOGGER.info("=============param====>"+paramMap);	
-			BatJobInstanceMapper mapper = sqlSession.getMapper(BatJobInstanceMapper.class);
-			resultMap = mapper.getBatJobExecutionDetailList(paramMap);
-		} finally {
-			sqlSession.close();
-		}
-		return HttpResponses.forwardToView(this, "index2").with("resultMap", resultMap).with(paramMap);
-
-	}
-	
-	//batchService.getBatJobExecutionDetailList : {"JOB_EXECUTION_ID":"2759","JOB_ID":"sample_db2db"}: 
-	/**
 	 * job실행 상세
+	 * batchService.getBatJobExecutionDetailList : {"JOB_EXECUTION_ID":"2759","JOB_ID":"sample_db2db"}: 
+	 * batchService.getBatStepExecution.json{"searchData":{"JOB_EXECUTION_ID":"2759"}}: 
 	 * @param jobExecutionId
 	 * @param jobId
 	 * @return
@@ -128,44 +107,103 @@ public class BatchJobExecutionListRootAction implements RootAction {
 		paramMap.put("JOB_EXECUTION_ID",jobExecutionId);
 		paramMap.put("JOB_ID",jobId);
         
-		Map<?,?> resultMap = new HashMap();
+		Map<String,Object> resultMap = new HashMap();
+		List<Map> stepList = new ArrayList();
 		try {
 			LOGGER.info("=============param====>"+paramMap);	
 			BatJobInstanceMapper mapper = sqlSession.getMapper(BatJobInstanceMapper.class);
 			resultMap = mapper.getBatJobExecutionDetailList(paramMap);
+			stepList = mapper.getBatStepExecution(paramMap);
+			resultMap.put("stepList", stepList);
 		} finally {
 			sqlSession.close();
 		}
 		return resultMap;
-		//return HttpResponses.forwardToView(this, "index2").with("resultMap", resultMap).with(paramMap);
-
 	}
-	//batchService.getBatStepExecution.json{"searchData":{"JOB_EXECUTION_ID":"2759"}}: 
 	/**
-	 * 스텝 상세 리스트 조회 
+	 * Job 중지
+	 * - 업데이트 => STARTING, STARTED 상태를  -> STOPPING, END_TIME=SYSDATE, VERSION = VERSION+1
+	 * - version을 증가시키는 방법?
 	 * @param jobExecutionId
 	 * @return
 	 * @throws Exception
 	 */
 	@JavaScriptMethod
-	public List<Map> getStepList(String jobExecutionId) throws Exception {
+	public Map doStop(String jobExecutionId,String jobId) throws Exception {
 
 		SqlSession sqlSession = frameworkRepositoryDbConfiguration.getSqlSessionFactory().openSession();
 		if (sqlSession == null)
 			throw new IllegalArgumentException("SqlSession isn't configured yet");
 
 		Map<String,String> paramMap = new HashMap<String,String>();
+		paramMap.put("JOB_ID",jobId);
 		paramMap.put("JOB_EXECUTION_ID",jobExecutionId);
+		paramMap.put("STATUS","STOPPING");
         
-		List<Map> resultList = new ArrayList();
+		Map<String,Object> resultMap = new HashMap();
 		try {
 			LOGGER.info("=============param====>"+paramMap);	
 			BatJobInstanceMapper mapper = sqlSession.getMapper(BatJobInstanceMapper.class);
-			resultList = mapper.getBatStepExecution(paramMap);
+			int affectedRow = mapper.updateBatJob(paramMap);
+			resultMap.put("affectedRow", affectedRow);
+			final AbstractProject buildJob = Jenkins.getInstance().getItemByFullName(jobId, AbstractProject.class);
+			if( buildJob != null) {
+				HttpResponse response = buildJob.getLastBuild().doStop();
+				resultMap.put("RESULT", buildJob.getLastBuild().getResult());
+				resultMap.put("BUILD_NUMBER",buildJob.getLastBuild().number);
+				resultMap.put("STOP_RESULT",response);
+			}
+			sqlSession.commit();
+		} catch(Exception e) {
+			LOGGER.info(e.getMessage());
+			sqlSession.rollback();
 		} finally {
-			sqlSession.close();
+			 sqlSession.close();
 		}
-		return resultList;
+		return resultMap;
 
 	}
+	/**
+	 * Job 폐기
+	 * - 업데이트 => stop, stopping 상태를  -> ABANDONED, END_TIME=SYSDATE, VERSION = VERSION+1
+	 * - version을 증가시키는 방법?
+	 * @param jobExecutionId
+	 * @return
+	 * @throws Exception
+	 */
+	@JavaScriptMethod
+	public Map doAbandon(String jobExecutionId,String jobId) throws Exception {
+		
+		SqlSession sqlSession = frameworkRepositoryDbConfiguration.getSqlSessionFactory().openSession();
+		if (sqlSession == null)
+			throw new IllegalArgumentException("SqlSession isn't configured yet");
+		
+		Map<String,String> paramMap = new HashMap<String,String>();
+		paramMap.put("JOB_ID",jobId);
+		paramMap.put("JOB_EXECUTION_ID",jobExecutionId);
+		paramMap.put("STATUS","ABANDONED");
+		Map<String,Object> resultMap = new HashMap();
+		try {
+			LOGGER.info("=============param====>"+paramMap);	
+			BatJobInstanceMapper mapper = sqlSession.getMapper(BatJobInstanceMapper.class);
+			int affectedRow = mapper.updateBatJob(paramMap);
+			resultMap.put("affectedRow", affectedRow);
+			final AbstractProject buildJob = Jenkins.getInstance().getItemByFullName(jobId, AbstractProject.class);
+			if( buildJob != null) {
+				HttpResponse response = buildJob.getLastBuild().doStop();
+				resultMap.put("RESULT", buildJob.getLastBuild().getResult());
+				resultMap.put("BUILD_NUMBER",buildJob.getLastBuild().number);
+				resultMap.put("STOP_RESULT",response);
+			}
+			sqlSession.commit();
+		} catch(Exception e) {
+			LOGGER.info(e.getMessage());
+			sqlSession.rollback();
+		} finally {
+			 sqlSession.close();
+		}
+		return resultMap;
+		
+	}
+
 }

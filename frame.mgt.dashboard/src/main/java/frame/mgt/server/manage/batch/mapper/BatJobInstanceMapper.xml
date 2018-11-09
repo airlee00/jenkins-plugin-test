@@ -87,8 +87,64 @@
         </if> 
         /* ORDER BY a.JOB_EXECUTION_ID */ 
         ORDER BY a.JOB_EXECUTION_ID DESC 
-        LIMIT 10
-        OFFSET 0
+        LIMIT  #{LIMIT}
+        OFFSET #{OFFSET}
+    </select>
+    
+      <select id="getBatJobExecutionDetailListCount" parameterType="hashMap" resultType="int">
+        SELECT
+            COUNT(*) ROWCNT 
+        FROM
+            fw.TB_BAT_JOB_EXECUTION A 
+        JOIN fw.TB_BAT_JOB_INSTANCE C 
+            ON A.JOB_INSTANCE_ID = C.JOB_INSTANCE_ID 
+        <if test = "JOB_NM != null and JOB_NM != ''"> 
+            AND UPPER(REPLACE(C.JOB_NAME, ' ', '')) LIKE CONCAT('%' , UPPER(REPLACE(#{JOB_NM , javaType=String, jdbcType=VARCHAR}, ' ', '')) , '%')
+        </if> 
+        JOIN fw.TB_BAT_JOB_EXECUTION_CONTEXT B 
+            ON A.JOB_EXECUTION_ID = B.JOB_EXECUTION_ID 
+        JOIN fw.tb_bat_apsvr_BATPRCT D 
+            ON A.JOB_EXECUTION_ID = D.JOB_EXECUTION_ID 
+        /*JOIN fw.TB_BAT_JOB_RUN E 
+            ON D.BAT_JOB_RUN_KEY = E.BAT_JOB_RUN_KEY*/
+        <if test = "PRCT_TP != null and PRCT_TP != ''"> 
+            /*AND E.PRCT_TP = #{PRCT_TP , javaType=String, jdbcType=VARCHAR}*/
+        </if> 
+        <if test = "BAT_JOB_RUN_KEY != null and BAT_JOB_RUN_KEY != ''"> 
+            /*AND E.BAT_JOB_RUN_KEY = #{BAT_JOB_RUN_KEY ,javaType=String, jdbcType=VARCHAR}*/
+        </if> 
+        /*JOIN fw.TB_BAT_JOB F 
+            ON E.RSC_KEY = F.RSC_KEY*/
+        <if test = "BAT_JOB_NM != null and BAT_JOB_NM != ''"> 
+        /*  AND UPPER(REPLACE(F.BAT_JOB_NM, ' ', '')) LIKE CONCAT('%' , UPPER(REPLACE(#{BAT_JOB_NM ,javaType=String, jdbcType=VARCHAR}, ' ', '')) , '%')*/
+        </if> 
+        /*JOIN fw.TB_RSC G 
+            ON F.RSC_KEY = G.RSC_KEY 
+        JOIN fw.ap_ide_PROJ H 
+            ON G.PROJ_KEY = H.PROJ_KEY 
+        JOIN fw.ap_ide_JOB_PROJ I 
+            ON H.JOB_PROJ_KEY = I.JOB_PROJ_KEY */
+        <if test = "JOB_PROJ_KEY != null and JOB_PROJ_KEY != ''"> 
+         /* AND I.JOB_PROJ_KEY = #{JOB_PROJ_KEY}*/
+        </if> 
+        /*JOIN fw.ap_ide_SYS J 
+            ON I.SYS_KEY = J.SYS_KEY*/
+        <if test = "SYS_KEY != null and SYS_KEY != ''"> 
+        /*  AND J.SYS_KEY = #{SYS_KEY}*/
+        </if> 
+        WHERE 1 = 1 
+        <if test = "START_DATE != null and START_DATE !=''"> 
+            <![CDATA[ AND DATE_FORMAT(A.START_TIME, '%Y-%m-%d %H:%i:%s') >= CONCAT(#{START_DATE ,javaType=String, jdbcType=TIMESTAMP} , ' 00:00:00') ]]> 
+        </if>
+        <if test = "END_DATE != null and END_DATE != ''"> 
+            <![CDATA[ AND DATE_FORMAT(A.START_TIME, '%Y-%m-%d %H:%i:%s') <= CONCAT(#{END_DATE ,javaType=String, jdbcType=TIMESTAMP} , ' 23:59:59') ]]>
+        </if> 
+        <if test = "JOB_EXECUTION_ID != null and JOB_EXECUTION_ID !=''"> 
+            AND A.JOB_EXECUTION_ID = #{JOB_EXECUTION_ID ,javaType=String, jdbcType=VARCHAR}
+        </if>
+        <if test = "JCHRGPSN_KEY != null and JCHRGPSN_KEY !=''"> 
+            AND E.JCHRGPSN_KEY = #{JCHRGPSN_KEY} 
+        </if> 
     </select>
     
     <select id="getBatJobExecutionDetailList" parameterType="hashMap" resultType="hashMap">
@@ -114,7 +170,7 @@
             ,A.STATUS
             ,A.EXIT_CODE
             ,A.EXIT_MESSAGE
-            ,A.LAST_UPDATED
+            ,DATE_FORMAT(A.LAST_UPDATED, '%Y-%m-%d %h:%m:%s') AS LAST_UPDATED 
             ,B.SHORT_CONTEXT
             ,B.SERIALIZED_CONTEXT
             /*,J.SYS_NM */
@@ -171,7 +227,7 @@
             ,(A.ROLLBACK_COUNT) ROLLBACK_COUNT
             ,A.EXIT_CODE
             ,A.EXIT_MESSAGE
-            ,A.LAST_UPDATED
+            ,DATE_FORMAT(A.LAST_UPDATED, '%Y-%m-%d %h:%m:%s') AS LAST_UPDATED
             ,B.SHORT_CONTEXT
             ,B.SERIALIZED_CONTEXT
             ,R.HOST_ID
@@ -194,7 +250,18 @@
                 A.JOB_EXECUTION_ID = R.JOB_EXECUTION_ID    
         ORDER BY 
                 A.START_TIME, A.STEP_EXECUTION_ID
-    </select>    
+    </select>  
+    
+ 	<update id="updateBatJob" parameterType="hashMap">
+		UPDATE
+			fw.tb_bat_job_execution
+		SET
+			 STATUS = #{STATUS,jdbcType=VARCHAR}
+			,END_TIME = NOW()  
+			,VERSION = VERSION+1
+		WHERE
+			JOB_EXECUTION_ID = #{JOB_EXECUTION_ID}
+	</update>     
 </mapper>
 
 

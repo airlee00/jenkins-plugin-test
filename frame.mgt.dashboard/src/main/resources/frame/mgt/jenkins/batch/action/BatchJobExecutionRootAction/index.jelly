@@ -1,0 +1,384 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler"
+	xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson"
+	xmlns:f="/lib/form">
+ 	<l:layout title="BatchJob">
+	   <l:side-panel> 
+            <st:include page="sidepanel.jelly" it="${it.run}" optional="true" /> 
+        </l:side-panel>
+		<l:main-panel>
+		  <link rel="stylesheet" href="${resURL}/plugin/framexpert-mgt-dashboard-plugin/bootstrap/css/bootstrap.min.css"/>
+		  <link rel="stylesheet" href="${resURL}/plugin/framexpert-mgt-dashboard-plugin/jquery-ui/jquery-ui.min.css"/>
+		  <script src="${resURL}/plugin/framexpert-mgt-dashboard-plugin/jquery-ui/external/jquery/jquery.js"></script>
+		  <script src="${resURL}/plugin/framexpert-mgt-dashboard-plugin/jquery-ui/jquery-ui.min.js"></script>
+		  <script src="${resURL}/plugin/framexpert-mgt-dashboard-plugin/bootstrap/js/bootstrap.min.js"></script>
+		  <script>
+		  var Q=jQuery.noConflict();
+		  jQuery.browser = {};
+				(function () {
+				    jQuery.browser.msie = false;
+				    jQuery.browser.version = 0;
+				    if (navigator.userAgent.match(/MSIE ([0-9]+)\./)) {
+				        jQuery.browser.msie = true;
+				        jQuery.browser.version = RegExp.$1;
+				    }
+				})();
+		  </script>
+<link rel="stylesheet" type="text/css" href="${resURL}/plugin/framexpert-mgt-dashboard-plugin/bs_pagination/jquery.bs_pagination.min.css" />
+<script type="text/javascript" src="${resURL}/plugin/framexpert-mgt-dashboard-plugin/bs_pagination/jquery.bs_pagination.min.js"></script>
+<script type="text/javascript" src="${resURL}/plugin/framexpert-mgt-dashboard-plugin/bs_pagination/localization/en.min.js"></script>
+
+			<!-- Custom Styles for table -->
+			<style type="text/css">
+				.STAGING {
+				    background-color: lightgray
+				}
+				/* Style the tab */
+				.tab {
+				    overflow: hidden;
+				    border: 1px solid #ccc;
+				    background-color: #f1f1f1;
+				}
+				
+				/* Style the buttons that are used to open the tab content */
+				.tab button {
+				    background-color: inherit;
+				    float: left;
+				    border: none;
+				    outline: none;
+				    cursor: pointer;
+				    padding: 7px 10px;
+				    transition: 0.3s;
+				}
+				
+				/* Change background color of buttons on hover */
+				.tab button:hover {
+				    background-color: #ddd;
+				}
+				
+				/* Create an active/current tablink class */
+				.tab button.active {
+				    background-color: #ccc;
+				}
+				
+				/* Style the tab content */
+				.tabcontent {
+				    display: none;
+				    padding: 6px 12px;
+				    border: 1px solid #ccc;
+				    border-top: none;
+				}
+			</style>
+
+			<script>
+				function openTab(evt, cityName) {
+				    // Declare all variables
+				    var i, tabcontent, tablinks;
+				
+				    // Get all elements with class="tabcontent" and hide them
+				    tabcontent = document.getElementsByClassName("tabcontent");
+				    for (i = 0; i &lt; tabcontent.length; i++) {
+				        tabcontent[i].style.display = "none";
+				    }
+				
+				    // Get all elements with class="tablinks" and remove the class "active"
+				    tablinks = document.getElementsByClassName("tablinks");
+				    for (i = 0; i &lt; tablinks.length; i++) {
+				        tablinks[i].className = tablinks[i].className.replace(" active", "");
+				    }
+				
+				    // Show the current tab, and add an "active" class to the button that opened the tab
+				    document.getElementById(cityName).style.display = "block";
+				    document.getElementById(cityName + '_btn').className += " active";
+				}
+				
+				function execute() {
+				    document.f1.submit();
+				}
+				
+				function getJobDetail(exeId, jobId) {
+				    var app = <st:bind value="${it}"/>
+				    document.getElementById('msg').innerHTML = " Please wait ...";
+				    app.getJobDetail(exeId, jobId, function(t) {
+				        var res = t
+                        document.getElementById('HOST_ID').value = res.responseJSON.HOST_ID;
+                        document.getElementById('HOST_IP_ADDR').value = res.responseJSON.HOST_IP_ADDR;
+                        document.getElementById('JOB_NM').value = res.responseJSON.JOB_NM;
+                        document.getElementById('JOB_INSTANCE_ID').value = res.responseJSON.JOB_INSTANCE_ID;
+                        document.getElementById('JOB_EXECUTION_ID').value = res.responseJSON.JOB_EXECUTION_ID;
+                        document.getElementById('STATUS').value = res.responseJSON.STATUS;
+                        document.getElementById('EXIT_CODE').value = res.responseJSON.EXIT_CODE;
+                        document.getElementById('CREATE_TIME').value = res.responseJSON.CREATE_TIME;
+                        document.getElementById('END_TIME').value = res.responseJSON.END_TIME;
+                        document.getElementById('EXE_TIME').value = res.responseJSON.EXE_TIME;
+                        document.getElementById('EXIT_MESSAGE').value = res.responseJSON.EXIT_MESSAGE;
+                        addTable(res.responseJSON.stepList);
+                    })
+                    document.getElementById('msg').innerHTML = "";
+				    openTab(event, 'Paris')
+                }
+                
+                function addTable(res){
+			       var insertTable = document.getElementById("stepTable");
+			       for(var i=1; i  &lt; insertTable.rows.length ; i++ ) {
+			       		insertTable.deleteRow(i);
+			       }
+			        var currentRow = insertTable.insertRow();
+			        //var rowIndex = currentRow.rowIndex;
+			 		
+			 		for(var i=0; i &lt; res.length; i++) {
+        				var strHTML='<tr>'
+        					+'<td>'+ (i+1) + '</td>'
+        					+'<td>'+ res[i].STEP_NAME +'</td>'
+        					+'<td>'+ res[i].COMMIT_COUNT +'</td>'
+        					+'<td>'+ res[i].READ_COUNT +'</td>'
+        					+'<td>'+ res[i].WRITE_COUNT +'</td>'
+        					+'<td>'+ res[i].STATUS +'</td>'
+        					+'<td>'+ res[i].EXIT_CODE +'</td>'
+        					+'<td>'+ res[i].START_TIME +'</td>'
+        					+'<td>'+ res[i].END_TIME +'</td>'
+        					+'<td>'+ res[i].GAP_TIME +'</td>'
+        					+'<td><textarea style="width: 100%" class="textarea_readonly" readonly="readonly" rows="2" onClick="copyText(this.value)">'+ res[i].EXIT_MESSAGE +'</textarea></td>'
+        				    +'</tr>';    
+        		         
+        		        currentRow.innerHTML = strHTML;
+			        }
+
+               }
+                function copyText(value){
+			      document.getElementById("EXIT_MESSAGE").value = value;
+               }
+    		
+    		   function doStop() {
+    			    var status = document.getElementById('STATUS').value;
+    			    if(status == "STARTED" || status == "STARTING"){
+    			   		 if(confirm("중지하시겠습니까?")){
+				   			document.getElementById('msg').innerHTML = " Please wait ...";
+							var app = <st:bind value="${it}"/>
+				   			var exeId = document.getElementById('JOB_EXECUTION_ID').value;
+				   			var jobId = document.getElementById('JOB_NM').value;
+				    		app.doStop(exeId, jobId, function(t) {
+				        		var res = t
+                        		//refresh detail
+                        		getJobDetail(exeId,jobId);
+                    		})
+                    		document.getElementById('msg').innerHTML = "";
+                    	}
+					
+					} else {
+						alert("배치 작업이 실행 상태에서만 중지 가능합니다. \n( STARTED or STARTING )");
+					}	
+			   }    
+    		   function doAbandon() {
+    			    var status = document.getElementById('STATUS').value;
+    			    if(status == "STOPPED" || status == "STOPPING"){
+    			    	if(confirm("파기하시겠습니까?")){
+				   			document.getElementById('msg').innerHTML = " Please wait ...";
+							var app = <st:bind value="${it}"/>
+				   			var exeId = document.getElementById('JOB_EXECUTION_ID').value;
+				   			var jobId = document.getElementById('JOB_NM').value;
+				    		app.doAbandon(exeId, jobId, function(t) {
+				        		var res = t
+                        		//refresh detail
+                        		getJobDetail(exeId,jobId);
+                    		})
+                    		document.getElementById('msg').innerHTML = "";
+						}
+					} else {
+						alert("배치 작업이 실행 상태에서만 중지 가능합니다. \n( STARTED or STARTING )");
+					}	
+			   }  
+
+			   //onload
+			   jQuery( function() {
+			        var startDate = document.getElementById('startDate').value;
+			        if( !startDate )  {
+				        var eday = new Date();
+				        var sday = new Date();
+						var dayOfMonth = eday.getDate();
+						sday.setDate(dayOfMonth - 7);
+						
+	    				jQuery( "#startDate" ).datepicker({
+							dateFormat: "yy-mm-dd"
+							}).datepicker('setDate', sday);
+						
+	    				jQuery( "#endDate" ).datepicker({
+							dateFormat: "yy-mm-dd"
+							}).datepicker('setDate', eday);
+				  }
+				
+				  var total = '${TOTAL_COUNT}';
+				  if(!total) {
+				  	 total = 0;
+				  }
+  					jQuery("#demo_pag1").bs_pagination({
+    					totalPages: total,
+    					rowsPerPage: 10,
+    					showGoToPage: false,
+  						showRowsPerPage: false,
+  						showRowsInfo: false,
+  						showRowsDefaultInfo: false,
+    					onChangePage: function(event, data) {
+   							 // your code here e.g.
+ 						   console.log('Current page is: ' + data.currentPage + '. ' + data.rowsPerPage + ' are displayed per page.');
+ 						   document.getElementById('pageNumber').value = data.currentPage;
+ 						   document.getElementById('pageSize').value = data.rowsPerPage;
+ 						   execute();
+ 						 }
+ 					 });
+ 					 
+  				});  
+			</script>
+
+
+			<form name="f1" method="get" action="execute">
+				<table>
+					<tr>
+						<td>
+							<div align='center'>
+								Job Name<input type="text" id="jobName" name="jobName" value="${JOB_NM}" />
+								Start Date	<input type="text" id="startDate" name="startDate"	value="${START_DATE}" />
+								End Date	<input type="text" id="endDate" name="endDate"	value="${END_DATE}" />
+								<a id="deployLink" title="Search" href=""	onclick="execute(); return false;">
+									<img title="Search" alt="Search"	src="${rootURL}/images/24x24/clock.png" border="0" />
+								</a>
+								<p>
+									<div id="msg" />
+								</p>
+							</div>
+						</td>
+					</tr>
+				</table>
+				<input type="hidden" id="pageNumber" name="pageNumber"	value="${pageNumber}" />
+				<input type="hidden" id="pageSize" name="pageSize"	value="${pageSize}" />
+			</form>
+	         
+	         <form name="f2" method="get" action="getList">
+                <input type="hidden" id="jobExecutionId" name="jobExecutionId"   />
+                <input type="hidden" id="jobId" name="jobId"   />
+            </form>		
+            
+		<!-- Tab links -->
+		<div class="tab">
+		  <button class="tablinks active" id="London_btn" onclick="openTab(event, 'London')">배치실행목록</button>
+		  <button class="tablinks" id="Paris_btn" onclick="openTab(event, 'Paris')">상세정보</button>
+		</div>
+		
+		<!-- Tab content -->
+		<div id="London" class="tabcontent" style="display:block">
+		            <table class="pane bigtable">
+		                <tr class="header">
+		                    <th>INST_ID</th>
+		                    <th>EXEC_ID</th>
+		                    <th>JOB ID</th>
+		                    <th>실행상태</th>
+		                    <th>실행서버</th>
+		                    <th>시작일시</th>
+		                    <th>종료일시</th>
+		                    <th>JENKINS-Job</th>
+		                </tr>
+		                <j:forEach var="jobinfo" items="${exelist}">
+		                    <tr class="STAGING">
+		                        <td>${jobinfo.JOB_INSTANCE_ID}</td>
+		                        <td>
+		                            <b>${jobinfo.JOB_EXECUTION_ID}</b>
+		                        </td>
+		                        <td>
+		                        <a href="javascript:getJobDetail('${jobinfo.JOB_EXECUTION_ID}', '${jobinfo.JOB_NM}')" >${jobinfo.JOB_NM}</a>
+		                        <a id="deployLink" href="../job/${jobinfo.JOB_NM}">
+		                           <img title="Search" alt="Search"    src="${rootURL}/images/16x16/clock.png" border="0" />
+		                         </a>
+		                        </td>
+		                        <td>${jobinfo.STATUS}</td>
+		                        <td>${jobinfo.HOST_ID}</td>
+		                        <td>${jobinfo.CREATE_TIME}</td>
+		                        <td>${jobinfo.END_TIME}</td>
+		                        <td><a href="../job/${jobinfo.JOB_NM}/${jobinfo.BUILD_NUMBER}/console">${jobinfo.RESULT}</a>
+		                        </td>
+		                    </tr>
+		                </j:forEach>
+		            </table>
+		            
+		            <div id="demo_pag1"></div>
+		</div>
+		
+		<div id="Paris" class="tabcontent">
+		   <table cellpadding="2" cellspacing="1" class="search_table" style="width: 100%" >
+					<colgroup>
+						<col width="10%"/>
+						<col width="28%"/>
+						<col width="10%"/>
+						<col width="28%"/>
+						<col width="10%"/>
+						<col width="14%"/>
+					</colgroup>
+					<tbody><tr>
+						<th>실행서버</th>
+						<td class="left"><input type="text" name="HOST_ID" id="HOST_ID" style="width: 94%" class="input_readonly" readonly="readonly"/></td>
+						<th>서버IP</th>
+						<td class="left" colspan="3"><input type="text" name="HOST_IP_ADDR" id="HOST_IP_ADDR" style="width: 50%" class="input_readonly" readonly="readonly"/></td>
+					</tr>
+					<tr>
+						<th>잡ID</th>
+						<td class="left"><input type="text" name="JOB_NM" id="JOB_NM" style="width: 94%" class="input_readonly" readonly="readonly"/></td>
+						<th>INST_ID</th>
+						<td class="left"><input type="text" name="JOB_INSTANCE_ID" id="JOB_INSTANCE_ID" style="width: 94%" class="input_readonly" readonly="readonly"/></td>
+						<th>EXEC_ID</th>
+						<td class="left"><input type="text" name="JOB_EXECUTION_ID" id="JOB_EXECUTION_ID" style="width: 92%" class="input_readonly" readonly="readonly"/></td>
+					</tr>
+					<tr>
+						<th>실행상태</th>
+						<td class="left"><input type="text" name="STATUS" id="STATUS" style="width: 94%" class="input_readonly" readonly="readonly"/></td>
+						<th>종료코드</th>
+						<td class="left" colspan="3"><input type="text" name="EXIT_CODE" id="EXIT_CODE" style="width: 50%" class="input_readonly" readonly="readonly"/></td>
+					</tr>
+					<tr>
+						<th>시작일시</th>
+						<td class="left"><input type="text" name="CREATE_TIME" id="CREATE_TIME" style="width: 94%" class="input_readonly" readonly="readonly"/></td>
+						<th>종료일시</th>
+						<td class="left"><input type="text" name="END_TIME" id="END_TIME" style="width: 94%" class="input_readonly" readonly="readonly"/></td>
+						<th>수행시간</th>
+						<td class="left"><input type="text" name="EXE_TIME" id="EXE_TIME" style="width: 92%" class="input_readonly" readonly="readonly"/></td>
+					</tr>
+					<tr>
+						<th>종료메시지</th>
+						<td class="left" colspan="5"><textarea name="EXIT_MESSAGE" id="EXIT_MESSAGE" style="width: 100%" class="textarea_readonly" readonly="readonly" rows="2"></textarea></td>
+					</tr>
+				</tbody>
+			 </table>
+			 <h3>
+				<img src="${rootURL}/images/24x24/terminal.gif" alt="Step 상세" /> Step 상세
+			 </h3>
+			 <table class="pane bigtable" id="stepTable">
+					<tbody>
+						<tr class="header">
+							<th>No</th>
+							<th>stepid</th>
+							<th>커밋건수</th>
+							<th>조회건수</th>
+							<th>처리건수</th>
+							<th>실행상태</th>
+							<th>종료코드</th>
+							<th>시작일시</th>
+							<th>종료일시</th>
+							<th>수행시간</th>
+							<th>종료메시지</th>
+						</tr>
+					</tbody>
+			</table>
+
+			<div id="rss-bar">
+				<span class="rss-bar-item">
+					<img src="${rootURL}/images/24x24/red.gif" alt="stop" class="icon-rss icon-sm" />
+					<a href="javascript:doStop()" class="rss-bar-legend-link">중지(START -> STOP)</a>
+				</span>
+				<span class="rss-bar-item">
+					<img src="${rootURL}/images/24x24/edit-delete.gif" alt="delete" class="icon-rss icon-sm" />
+					<a href="javascript:doAbandon()" class="rss-bar-item-link">파기(STOP -> ABANDONED)</a>
+				</span>
+			</div>				
+			
+		</div>
+		</l:main-panel>
+	</l:layout>
+</j:jelly>
