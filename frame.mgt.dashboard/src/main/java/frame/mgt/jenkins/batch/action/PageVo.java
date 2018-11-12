@@ -60,6 +60,13 @@ public class PageVo implements Serializable {
     public int getTotalRowCount() {
         return totalRowCount;
     }
+    public int getTotalPage() {
+    	int totalPage = totalRowCount/pageSize;
+    	if(totalRowCount % pageSize > 0) {
+    		totalPage++;
+    	}
+    	return totalPage;
+    }
 
     public void setTotalRowCount(int totalRowCount) {
         this.totalRowCount = totalRowCount;
@@ -70,5 +77,10 @@ public class PageVo implements Serializable {
         return "PageVo [pageSize=" + pageSize + ", pageNumber=" + pageNumber + ", totalRowCount=" + totalRowCount + "]";
     }
 
+    public static void main(String[] args) {
+    	PageVo vo = new PageVo(10,1);
+    	vo.setTotalRowCount(11);
+    	System.out.println(vo.getTotalPage());
+	}
 	
 }

@@ -9,7 +9,7 @@
 		<l:main-panel>
 		  <link rel="stylesheet" href="${resURL}/plugin/framexpert-mgt-dashboard-plugin/bootstrap/css/bootstrap.min.css"/>
 		  <link rel="stylesheet" href="${resURL}/plugin/framexpert-mgt-dashboard-plugin/jquery-ui/jquery-ui.min.css"/>
-		  <script src="${resURL}/plugin/framexpert-mgt-dashboard-plugin/jquery-ui/external/jquery/jquery.js"></script>
+		  <script src="${resURL}/plugin/framexpert-mgt-dashboard-plugin/jquery/jquery-3.3.1.min.js"></script>
 		  <script src="${resURL}/plugin/framexpert-mgt-dashboard-plugin/jquery-ui/jquery-ui.min.js"></script>
 		  <script src="${resURL}/plugin/framexpert-mgt-dashboard-plugin/bootstrap/js/bootstrap.min.js"></script>
 		  <script>
@@ -24,74 +24,9 @@
 				    }
 				})();
 		  </script>
-<link rel="stylesheet" type="text/css" href="${resURL}/plugin/framexpert-mgt-dashboard-plugin/bs_pagination/jquery.bs_pagination.min.css" />
-<script type="text/javascript" src="${resURL}/plugin/framexpert-mgt-dashboard-plugin/bs_pagination/jquery.bs_pagination.min.js"></script>
-<script type="text/javascript" src="${resURL}/plugin/framexpert-mgt-dashboard-plugin/bs_pagination/localization/en.min.js"></script>
-
-			<!-- Custom Styles for table -->
-			<style type="text/css">
-				.STAGING {
-				    background-color: lightgray
-				}
-				/* Style the tab */
-				.tab {
-				    overflow: hidden;
-				    border: 1px solid #ccc;
-				    background-color: #f1f1f1;
-				}
-				
-				/* Style the buttons that are used to open the tab content */
-				.tab button {
-				    background-color: inherit;
-				    float: left;
-				    border: none;
-				    outline: none;
-				    cursor: pointer;
-				    padding: 7px 10px;
-				    transition: 0.3s;
-				}
-				
-				/* Change background color of buttons on hover */
-				.tab button:hover {
-				    background-color: #ddd;
-				}
-				
-				/* Create an active/current tablink class */
-				.tab button.active {
-				    background-color: #ccc;
-				}
-				
-				/* Style the tab content */
-				.tabcontent {
-				    display: none;
-				    padding: 6px 12px;
-				    border: 1px solid #ccc;
-				    border-top: none;
-				}
-			</style>
-
-			<script>
-				function openTab(evt, cityName) {
-				    // Declare all variables
-				    var i, tabcontent, tablinks;
-				
-				    // Get all elements with class="tabcontent" and hide them
-				    tabcontent = document.getElementsByClassName("tabcontent");
-				    for (i = 0; i &lt; tabcontent.length; i++) {
-				        tabcontent[i].style.display = "none";
-				    }
-				
-				    // Get all elements with class="tablinks" and remove the class "active"
-				    tablinks = document.getElementsByClassName("tablinks");
-				    for (i = 0; i &lt; tablinks.length; i++) {
-				        tablinks[i].className = tablinks[i].className.replace(" active", "");
-				    }
-				
-				    // Show the current tab, and add an "active" class to the button that opened the tab
-				    document.getElementById(cityName).style.display = "block";
-				    document.getElementById(cityName + '_btn').className += " active";
-				}
-				
+          <script type="text/javascript" src="${resURL}/plugin/framexpert-mgt-dashboard-plugin/jquery-bootpag/lib/jquery.bootpag.min.js"></script>
+		  <script>
+			
 				function execute() {
 				    document.f1.submit();
 				}
@@ -115,7 +50,8 @@
                         addTable(res.responseJSON.stepList);
                     })
                     document.getElementById('msg').innerHTML = "";
-				    openTab(event, 'Paris')
+                    jQuery('.nav-tabs a[href="#batch-menu1"]').tab('show');
+                    removeStyle();
                 }
                 
                 function addTable(res){
@@ -188,16 +124,20 @@
 						alert("배치 작업이 실행 상태에서만 중지 가능합니다. \n( STARTED or STARTING )");
 					}	
 			   }  
-
+			function removeStyle() {
+				jQuery( ".nav-tabs a" ).each(function( index ) {
+        			jQuery( this ).removeAttr("style");
+   				});
+			}
 			   //onload
 			   jQuery( function() {
-			        var startDate = document.getElementById('startDate').value;
+			        var startDate = '${START_DATE}';
+			        var endDate = '${END_DATE}';
 			        if( !startDate )  {
 				        var eday = new Date();
 				        var sday = new Date();
 						var dayOfMonth = eday.getDate();
 						sday.setDate(dayOfMonth - 7);
-						
 	    				jQuery( "#startDate" ).datepicker({
 							dateFormat: "yy-mm-dd"
 							}).datepicker('setDate', sday);
@@ -205,50 +145,56 @@
 	    				jQuery( "#endDate" ).datepicker({
 							dateFormat: "yy-mm-dd"
 							}).datepicker('setDate', eday);
-				  }
+ 		     		}else {
+ 	    				jQuery( "#startDate" ).datepicker('setDate', startDate);
+	    				jQuery( "#endDate" ).datepicker('setDate', endDate);		     		
+ 		     		}
 				
-				  var total = '${TOTAL_COUNT}';
-				  if(!total) {
-				  	 total = 0;
-				  }
-  					jQuery("#demo_pag1").bs_pagination({
-    					totalPages: total,
-    					rowsPerPage: 10,
-    					showGoToPage: false,
-  						showRowsPerPage: false,
-  						showRowsInfo: false,
-  						showRowsDefaultInfo: false,
-    					onChangePage: function(event, data) {
-   							 // your code here e.g.
- 						   console.log('Current page is: ' + data.currentPage + '. ' + data.rowsPerPage + ' are displayed per page.');
- 						   document.getElementById('pageNumber').value = data.currentPage;
- 						   document.getElementById('pageSize').value = data.rowsPerPage;
+				  var totalPage = '${TOTAL_PAGE}'?'${TOTAL_PAGE}':1;
+				  var pageNumber = '${pageNumber}'?'${pageNumber}':1;
+				  var pageSize = '${pageSize}'?'${pageSize}':10;
+			      jQuery(function(){
+        				jQuery('#page-selection').bootpag({
+            				total: totalPage,         <!-- total pages -->
+            				page: pageNumber,          <!-- current page -->
+            				maxVisible: pageSize     <!-- Links per page -->
+
+				        }).on("page", function(event, num){
+            				 // your code here e.g.
+ 						   console.log('Current page is: ' + num + '. ');
+ 						   document.getElementById('pageNumber').value = num;
  						   execute();
- 						 }
- 					 });
- 					 
+        				});
+    				});
+					 
+				    jQuery(".nav-tabs a").click(function(){
+        				jQuery(this).tab('show');
+        				removeStyle();
+    				});	 
   				});  
 			</script>
 
 
-			<form name="f1" method="get" action="execute">
-				<table>
-					<tr>
-						<td>
-							<div align='center'>
-								Job Name<input type="text" id="jobName" name="jobName" value="${JOB_NM}" />
-								Start Date	<input type="text" id="startDate" name="startDate"	value="${START_DATE}" />
-								End Date	<input type="text" id="endDate" name="endDate"	value="${END_DATE}" />
-								<a id="deployLink" title="Search" href=""	onclick="execute(); return false;">
-									<img title="Search" alt="Search"	src="${rootURL}/images/24x24/clock.png" border="0" />
-								</a>
-								<p>
-									<div id="msg" />
-								</p>
-							</div>
-						</td>
-					</tr>
-				</table>
+			<form name="f1" method="get" action="execute" class="form-inline">
+			    <div class="form-group">
+      			   <label for="jobName">Job ID:</label>
+                   <input type="text" class="form-control" id="jobName" placeholder="Enter JobId" name="jobName" value="${JOB_NM}" />
+                </div>    
+                 <img  src="${rootURL}/images/16x16/empty.gif" border="0" /> 
+			    <div class="form-group">
+      			   <label for="startDate">From:</label>
+                   <input type="text" class="form-control" id="startDate" placeholder="Enter 조회시작일" name="startDate" value="${START_DATE}" />
+                </div>    
+                <img  src="${rootURL}/images/16x16/empty.gif" border="0" /> 
+ 			    <div class="form-group">
+      			   <label for="endDate">To:</label>
+                   <input type="text" class="form-control" id="endDate" placeholder="Enter 조회종료일" name="endDate" value="${END_DATE}" />
+                </div>    
+                <img  src="${rootURL}/images/16x16/empty.gif" border="0" /> 
+                <button type="button" onclick="execute(); return false;" class="btn btn-default">Submit</button> 
+                <p>
+					<div id="msg" />
+				</p>                 
 				<input type="hidden" id="pageNumber" name="pageNumber"	value="${pageNumber}" />
 				<input type="hidden" id="pageSize" name="pageSize"	value="${pageSize}" />
 			</form>
@@ -259,14 +205,15 @@
             </form>		
             
 		<!-- Tab links -->
-		<div class="tab">
-		  <button class="tablinks active" id="London_btn" onclick="openTab(event, 'London')">배치실행목록</button>
-		  <button class="tablinks" id="Paris_btn" onclick="openTab(event, 'Paris')">상세정보</button>
-		</div>
+		  <ul class="nav nav-tabs">
+    		<li class="active"><a href="#batch-home">배치실행목록</a></li>
+    		<li><a href="#batch-menu1">상세정보</a></li>
+  		</ul>
 		
 		<!-- Tab content -->
-		<div id="London" class="tabcontent" style="display:block">
-		            <table class="pane bigtable">
+		<div class="tab-content">
+		<div id="batch-home" class="tab-pane fade in active">
+		            <table class="table table-striped">
 		                <tr class="header">
 		                    <th>INST_ID</th>
 		                    <th>EXEC_ID</th>
@@ -278,7 +225,7 @@
 		                    <th>JENKINS-Job</th>
 		                </tr>
 		                <j:forEach var="jobinfo" items="${exelist}">
-		                    <tr class="STAGING">
+		                    <tr>
 		                        <td>${jobinfo.JOB_INSTANCE_ID}</td>
 		                        <td>
 		                            <b>${jobinfo.JOB_EXECUTION_ID}</b>
@@ -299,11 +246,11 @@
 		                </j:forEach>
 		            </table>
 		            
-		            <div id="demo_pag1"></div>
+		            <div id="page-selection" style="text-align:center"></div>
 		</div>
 		
-		<div id="Paris" class="tabcontent">
-		   <table cellpadding="2" cellspacing="1" class="search_table" style="width: 100%" >
+		<div id="batch-menu1" class="tab-pane fade">
+		   <table class="table">
 					<colgroup>
 						<col width="10%"/>
 						<col width="28%"/>
@@ -349,7 +296,7 @@
 			 <h3>
 				<img src="${rootURL}/images/24x24/terminal.gif" alt="Step 상세" /> Step 상세
 			 </h3>
-			 <table class="pane bigtable" id="stepTable">
+			 <table class="table table-striped" id="stepTable">
 					<tbody>
 						<tr class="header">
 							<th>No</th>
@@ -378,6 +325,7 @@
 				</span>
 			</div>				
 			
+		</div>
 		</div>
 		</l:main-panel>
 	</l:layout>

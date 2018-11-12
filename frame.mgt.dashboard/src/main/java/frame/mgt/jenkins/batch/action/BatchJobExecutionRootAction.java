@@ -79,7 +79,8 @@ public class BatchJobExecutionRootAction extends AbstractDescribableImpl<BatchJo
 				//LOGGER.info("=============list====>"+ list);	
 			}
 			int rowcount = mapper.getBatJobExecutionDetailListCount(paramMap);
-			paramMap.put("TOTAL_COUNT", rowcount);
+			vo.setTotalRowCount(rowcount);
+			paramMap.put("TOTAL_PAGE", vo.getTotalPage());
 		} finally {
 			sqlSession.close();
 		}
