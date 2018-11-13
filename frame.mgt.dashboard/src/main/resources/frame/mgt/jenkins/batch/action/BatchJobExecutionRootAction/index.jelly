@@ -3,9 +3,7 @@
 	xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson"
 	xmlns:f="/lib/form">
  	<l:layout title="BatchJob">
-	   <l:side-panel> 
-            <st:include page="sidepanel.jelly" it="${it.run}" optional="true" /> 
-        </l:side-panel>
+
 		<l:main-panel>
 		  <link rel="stylesheet" href="${resURL}/plugin/framexpert-mgt-dashboard-plugin/bootstrap/css/bootstrap.min.css"/>
 		  <link rel="stylesheet" href="${resURL}/plugin/framexpert-mgt-dashboard-plugin/jquery-ui/jquery-ui.min.css"/>
@@ -146,8 +144,12 @@
 							dateFormat: "yy-mm-dd"
 							}).datepicker('setDate', eday);
  		     		}else {
- 	    				jQuery( "#startDate" ).datepicker('setDate', startDate);
-	    				jQuery( "#endDate" ).datepicker('setDate', endDate);		     		
+ 	    				jQuery( "#startDate" ).datepicker({
+							   dateFormat: "yy-mm-dd"
+							}).datepicker('setDate', startDate);
+	    				jQuery( "#endDate" ).datepicker({
+							   dateFormat: "yy-mm-dd"
+							}).datepicker('setDate', endDate);		     		
  		     		}
 				
 				  var totalPage = '${TOTAL_PAGE}'?'${TOTAL_PAGE}':1;
@@ -177,18 +179,18 @@
 
 			<form name="f1" method="get" action="execute" class="form-inline">
 			    <div class="form-group">
-      			   <label for="jobName">Job ID:</label>
+      			   <label for="jobName">JOB ID:</label>
                    <input type="text" class="form-control" id="jobName" placeholder="Enter JobId" name="jobName" value="${JOB_NM}" />
                 </div>    
                  <img  src="${rootURL}/images/16x16/empty.gif" border="0" /> 
 			    <div class="form-group">
-      			   <label for="startDate">From:</label>
-                   <input type="text" class="form-control" id="startDate" placeholder="Enter 조회시작일" name="startDate" value="${START_DATE}" />
+      			   <label for="startDate">FROM:</label>
+                   <input type="text" class="form-control" id="startDate" placeholder="Enter 조회시작일" name="startDate" value="${START_DATE}" readonly="readonly" />
                 </div>    
                 <img  src="${rootURL}/images/16x16/empty.gif" border="0" /> 
  			    <div class="form-group">
-      			   <label for="endDate">To:</label>
-                   <input type="text" class="form-control" id="endDate" placeholder="Enter 조회종료일" name="endDate" value="${END_DATE}" />
+      			   <label for="endDate">TO:</label>
+                   <input type="text" class="form-control" id="endDate" placeholder="Enter 조회종료일" name="endDate" value="${END_DATE}" readonly="readonly" />
                 </div>    
                 <img  src="${rootURL}/images/16x16/empty.gif" border="0" /> 
                 <button type="button" onclick="execute(); return false;" class="btn btn-default">Submit</button> 

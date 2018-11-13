@@ -14,6 +14,7 @@ import org.kohsuke.stapler.HttpResponses;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 
+import frame.mgt.jenkins.batch.config.BatchLogConfiguration;
 import frame.mgt.jenkins.batch.config.FrameworkRepositoryDbConfiguration;
 import frame.mgt.server.manage.batch.mapper.BatJobInstanceMapper;
 import hudson.Extension;
@@ -34,6 +35,9 @@ public class BatchJobExecutionRootAction extends AbstractDescribableImpl<BatchJo
 	@Inject
 	FrameworkRepositoryDbConfiguration frameworkRepositoryDbConfiguration;
 
+	@Inject
+	BatchLogConfiguration batchLogConfiguration;
+	
 	public String getDisplayName() {
 		return "Bach-JobExecution";
 	}
@@ -207,4 +211,10 @@ public class BatchJobExecutionRootAction extends AbstractDescribableImpl<BatchJo
 		
 	}
 
+	public HttpResponse doLogView(@QueryParameter String jobName, @QueryParameter String date) throws Exception {
+
+		LOGGER.info("=============param====>"+jobName + ",date=" + date);	
+		return HttpResponses.ok();
+
+	}
 }
