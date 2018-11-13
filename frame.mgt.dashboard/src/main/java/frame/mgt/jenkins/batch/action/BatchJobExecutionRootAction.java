@@ -1,5 +1,6 @@
 package frame.mgt.jenkins.batch.action;
 
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,6 +13,8 @@ import org.apache.ibatis.session.SqlSession;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.HttpResponses;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 
 import frame.mgt.jenkins.batch.config.BatchLogConfiguration;
@@ -211,10 +214,17 @@ public class BatchJobExecutionRootAction extends AbstractDescribableImpl<BatchJo
 		
 	}
 
-	public HttpResponse doLogView(@QueryParameter String jobName, @QueryParameter String date) throws Exception {
-
-		LOGGER.info("=============param====>"+jobName + ",date=" + date);	
-		return HttpResponses.ok();
-
+	public void doLogView(StaplerRequest req, StaplerResponse rsp, @QueryParameter String jobName,
+			@QueryParameter String date) throws Exception {
+		String baseDir = batchLogConfiguration.getBaseDir();
+		rsp.setContentType("text/plain;charset=UTF-8");
+		try {
+			String dateStr = date.split(" ")[0];
+			String fileName = baseDir + "/" + jobName + "-" + dateStr.replaceAll("-", "") + ".log";
+			LOGGER.info("fileName=" + fileName);
+			org.apache.commons.io.IOUtils.copy(new FileInputStream(fileName), rsp.getOutputStream());
+		} catch (Exception e) {
+			rsp.sendError(rsp.SC_NOT_FOUND);
+		}
 	}
 }
