@@ -2,6 +2,7 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
     <script src="http://cdnjs.cloudflare.com/ajax/libs/superagent/0.15.7/superagent.min.js" />
  <l:layout title="Greeting"> 
+ <st:include it="${it.build}" page="sidepanel.jelly" />
         <l:main-panel> 
             <h1> 
                 Name: ${it.name} 
